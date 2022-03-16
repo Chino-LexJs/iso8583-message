@@ -50,5 +50,5 @@ _Herramientas usadas en el proyecto:_
 
 ## Wiki 📖
 
-Puedes encontrar mucho más de cómo se usa el protocolo ISO-8583 este proyecto en nuestra [Wiki](https://es.wikipedia.org/wiki/ISO_8583)
+Puedes encontrar mucho más de cómo se usa el protocolo ISO-8583 este proyecto en [Wiki](https://es.wikipedia.org/wiki/ISO_8583)
 
