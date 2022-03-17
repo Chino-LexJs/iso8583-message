@@ -1,14 +1,29 @@
 const { Server, Socket } = require("net"),
   JsonSocket = require("json-socket");
 import { MTI0200 } from "./lib/8583";
+import { MTI0800 } from "./lib/MTI0800";
 
 const port = 3000;
 const port_PROSA = 8000;
 const host = "0.0.0.0";
 
-let message0800 = {
-  message: "Echo message 0800",
-};
+function message0800(): { [key: string]: string } {
+  let message = {
+    0: "0800",
+    1: "",
+    7: "",
+    11: "000578", // ID unico ver como se resuelve
+    70: "",
+  };
+  /**
+   * PDF PROSA (pag 43- 44)
+   * flujo Adquiriente -> PROSA
+   * header = ISO006000050
+   */
+  let header = "ISO006000050";
+  let message_echo = new MTI0800(message, message[0], header);
+  return { message: `${message_echo.getMessage()}` };
+}
 
 /**
  * Determina si la llamada o tipo de mensaje es soportado por el servidor
@@ -16,7 +31,6 @@ let message0800 = {
  * @returns {true | false} true si es un mti valido | false si es un mti que no soporta el servidor
  */
 function checkMTI(mti: string): boolean {
-  console.log("entre check");
   let mti_enabled = [
     "0200",
     "0210",
@@ -38,11 +52,15 @@ server.on("connection", (socket: { [key: string]: any }) => {
   );
   socket = new JsonSocket(socket);
   socket.on("message", (message: { [key: number]: string }) => {
-    console.log(`MTI: ${message[0]}`);
-    let test = new MTI0200(message, "0200", "0026000050");
-    console.log(test.getBitmap());
-    console.log(`Message: ${test.getMessage()}`);
-    socket.end();
+    if (checkMTI(message[0])) {
+      let test = new MTI0200(message, "0200", "ISO0026000050");
+      console.log(`Message: ${test.getMessage()}`);
+      socket.end();
+    } else {
+      console.log(
+        `MTI: ${message[0]} \nERROR MTI no es soportado por el Server`
+      );
+    }
   });
   socket.on("close", () => {
     console.log(`Comunicacion finalizada`);
@@ -59,7 +77,7 @@ server.listen({ port, host }, () => {
   socket.connect({ host: "localhost", port: port_PROSA });
   // Infinite loop
   setInterval(() => {
-    socket.sendMessage(message0800);
+    socket.sendMessage(message0800());
   }, 10000);
   socket.on("close", () => {
     console.log(`Comunicacion finalizada`);

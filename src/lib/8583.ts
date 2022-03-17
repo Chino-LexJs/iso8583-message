@@ -14,9 +14,8 @@ import obligatoryFields from "../util/obligatoryFields.js";
  * 0810 Respuesta de solicitud de gestion de red
  */
 
-abstract class ISO8583 {
+export abstract class ISO8583 {
   header: string;
-  iso: string;
   mti: string;
 
   /**
@@ -76,14 +75,9 @@ abstract class ISO8583 {
   };
 
   constructor(msg: { [key: number]: string }, mti: string, header: string) {
-    this.iso = "ISO";
     this.header = header;
     this.mti = mti;
     unpack(msg, this.fields);
-  }
-
-  public getIso(): string {
-    return this.iso;
   }
 
   /**
@@ -115,7 +109,7 @@ export class MTI0200 extends ISO8583 {
 
   getMessage(): string {
     let msg = "";
-    msg = msg.concat(this.iso, this.header, this.mti, this.bitmap);
+    msg = msg.concat(this.header, this.mti, this.bitmap);
     const keys = Object.keys(this.fields);
     for (let i = 0; i < keys.length; i++) {
       if (this.fields[parseInt(keys[i])][3]) {
