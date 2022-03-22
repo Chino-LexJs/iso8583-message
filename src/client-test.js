@@ -40,26 +40,19 @@ let message02 = {
   1: "0200",
   2: "3238048028808002",
   3: [
-    "0200",
-    "0000004210000199",
-    "650000",
-    "000000002050",
-    "0428132710",
-    "000578",
-    "132710",
-    "0428",
-    "0804",
-    "456",
-    "4591700012340000=",
-    "000000230579",
-    "A1B2C3D4E5",
-    "SOLABTEST TEST-3 DF MX",
-    "abcdefghij",
-    "484",
-    "B456PRO1+000",
-    "1234P",
-    "999",
-    "ABCD",
+    "000000", // P3 Processing code
+    "000000054000", // P4 amount transaction
+    "0926183724", // P7 Transmition date y time
+    "190601", // P11 Systems trace audit number
+    "185100", // P12 Time, local transaction
+    "0926", // P13 Date, local transaction
+    "901", // P22 Point of service enrty mode
+    "00", // P25 Point of Service Condition Code
+    "[21]5579210000000386=0000", // P35 Track 2 Data
+    "000000005928", // P37 Retrieval reference number
+    "CEN50FRDSS787932", // P41 Card Acceptor Terminal ID
+    "484", // P49 Transaction Currency Code
+    "030101B0200VAFAAR8303306", // P63 Additional Data
   ],
 };
 

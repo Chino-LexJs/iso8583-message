@@ -1,12 +1,19 @@
 const { Server, Socket } = require("net"),
   JsonSocket = require("json-socket");
-import { util_checkMTI, util_header } from "./util/utils_dataElements/utils";
+import {
+  util_checkMTI,
+  util_header,
+  util_checkBitmap,
+  fields,
+} from "./util/utils_dataElements/utils";
+import { hex_to_bin } from "./util/hex_to_bin";
 import { MTI0200 } from "./lib/8583";
 import { MTI0800 } from "./lib/MTI0800";
 
 const port = 3000;
 const port_PROSA = 8000;
 const host = "0.0.0.0";
+const ACTIVO = "1";
 
 function message0800(): { [key: string]: string } {
   let message = {
@@ -34,13 +41,34 @@ server.on("connection", (socket: { [key: string]: any }) => {
   );
   socket = new JsonSocket(socket);
   socket.on("message", (message: { [key: number]: any }) => {
+    /**
+     * FORMATO DE MESSAGE
+     * 0 : header {string}
+     * 1 : mti {string}
+     * 2 : primary bitmap {string}
+     * 3 : data elements {array}
+     */
     let checkMti = util_checkMTI(message[1].toString());
     let checkIso = util_header(message[0].toString());
-
     if (checkMti && checkIso) {
       console.log(
-        `MTI: ${message[1]} \nHEADER: ${message[0]} \nMTI y HEADER validos`
+        `MTI: ${message[1]} \nHEADER: ${message[0]} \nmti and header correct`
       );
+      let bin = hex_to_bin(message[2]);
+      if (bin.length === 64) {
+        let arrayCampos = []; // Array que contendra todos los numeros de los DEs que vienen en el msj
+        for (let i = 0; i < bin.length; i++) {
+          if (bin[i] === ACTIVO) {
+            arrayCampos.push(i + 1);
+          }
+        }
+        if (util_checkBitmap(arrayCampos, message[3], fields)) {
+          console.log(`BITMAP: ${message[2]} \nbitmap correct`);
+        }
+      } else {
+        console.log(bin.length);
+        console.log("incorrect");
+      }
       socket.end();
     } else {
       console.log(
