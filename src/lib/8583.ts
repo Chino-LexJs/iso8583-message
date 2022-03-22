@@ -98,8 +98,10 @@ export class MTI0200 extends ISO8583 {
   }
   /**
    *
-   * Primary bitmap:	    B238C48108E1841E
-   * Secondary bitmap:	0000004210000199
+   * Primary bitmap de la TERMINAL: 3238048028808002
+   * 
+   * Primary bitmap para PROSA:	    B238C48108E1841E
+   * Secondary bitmap para PROSA:	  0000004210000199
    */
   private bitmap: string = "B238C48108E1841E";
 

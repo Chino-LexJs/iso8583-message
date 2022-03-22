@@ -6,7 +6,7 @@ var Socket = require("net").Socket,
   JsonSocket = require("json-socket");
 var socket = new JsonSocket(new Socket());
 
-let message = {
+let message01 = {
   0: "0200",
   1: "0000004210000199",
   3: "650000",
@@ -29,8 +29,42 @@ let message = {
   102: "ABCD",
 };
 
+/**
+ * 0 : header
+ * 1 : mti
+ * 2 : primary bitmap
+ * 3 : data elements
+ */
+let message02 = {
+  0: "ISO002600005",
+  1: "0200",
+  2: "3238048028808002",
+  3: [
+    "0200",
+    "0000004210000199",
+    "650000",
+    "000000002050",
+    "0428132710",
+    "000578",
+    "132710",
+    "0428",
+    "0804",
+    "456",
+    "4591700012340000=",
+    "000000230579",
+    "A1B2C3D4E5",
+    "SOLABTEST TEST-3 DF MX",
+    "abcdefghij",
+    "484",
+    "B456PRO1+000",
+    "1234P",
+    "999",
+    "ABCD",
+  ],
+};
+
 socket.connect({ host: "localhost", port: 3000 }, () => {
-  socket.sendMessage(message);
+  socket.sendMessage(message02);
   socket.end();
 });
 socket.on("end", function () {

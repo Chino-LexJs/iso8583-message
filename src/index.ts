@@ -1,5 +1,6 @@
 const { Server, Socket } = require("net"),
   JsonSocket = require("json-socket");
+import { util_checkMTI, util_header } from "./util/utils_dataElements/utils";
 import { MTI0200 } from "./lib/8583";
 import { MTI0800 } from "./lib/MTI0800";
 
@@ -25,25 +26,6 @@ function message0800(): { [key: string]: string } {
   return { message: `${message_echo.getMessage()}` };
 }
 
-/**
- * Determina si la llamada o tipo de mensaje es soportado por el servidor
- * @param {string} mti tipo de mensaje (MTI)
- * @returns {true | false} true si es un mti valido | false si es un mti que no soporta el servidor
- */
-function checkMTI(mti: string): boolean {
-  let mti_enabled = [
-    "0200",
-    "0210",
-    "0220",
-    "0230",
-    "0420",
-    "0430",
-    "0800",
-    "0810",
-  ];
-  return mti_enabled.includes(mti);
-}
-
 const server = new Server();
 
 server.on("connection", (socket: { [key: string]: any }) => {
@@ -51,14 +33,18 @@ server.on("connection", (socket: { [key: string]: any }) => {
     `New connection from ${socket.remoteAddress} : ${socket.remotePort}`
   );
   socket = new JsonSocket(socket);
-  socket.on("message", (message: { [key: number]: string }) => {
-    if (checkMTI(message[0])) {
-      let test = new MTI0200(message, "0200", "ISO0026000050");
-      console.log(`Message: ${test.getMessage()}`);
+  socket.on("message", (message: { [key: number]: any }) => {
+    let checkMti = util_checkMTI(message[1].toString());
+    let checkIso = util_header(message[0].toString());
+
+    if (checkMti && checkIso) {
+      console.log(
+        `MTI: ${message[1]} \nHEADER: ${message[0]} \nMTI y HEADER validos`
+      );
       socket.end();
     } else {
       console.log(
-        `MTI: ${message[0]} \nERROR MTI no es soportado por el Server`
+        `MTI: ${message[1]} \nHEADER: ${message[0]} \nERROR en MTI o HEADER`
       );
     }
   });
