@@ -1,7 +1,7 @@
 import { ISO8583 } from "./8583";
 
-export class MTI0210 extends ISO8583 {
-  getMti(): string {
+export class MTI0200 extends ISO8583 {
+  then(arg0: (msj0200: any) => void) {
     throw new Error("Method not implemented.");
   }
   constructor(
@@ -12,24 +12,20 @@ export class MTI0210 extends ISO8583 {
   ) {
     super(bitmap, dataElements, mti, header);
   }
-
   /**
    *
-   * B23884812ED1841E00000042140001CC
-   * Primary bitmap:	B23884812ED1841E
-   * Secondary bitmap:	00000042140001CC
+   * Primary bitmap de la TERMINAL: 3238048028808002
+   *
+   * Primary bitmap para PROSA:	    B238C48108E1841E
+   * Secondary bitmap para PROSA:	  0000004210000199
    */
-  private bitmap: string = "B23884812ED1841E";
+  private bitmap: string = "B238C48108E1841E";
+
+  public getBitmap(): string {
+    return this.bitmap;
+  }
 
   getMessage(): string {
-    /**
-     *
-     * B23884812ED1841E00000042140001CC
-     * Primary bitmap:	B23884812ED1841E
-     * Secondary bitmap:	00000042140001CC
-     */
-    this.fields[1][3] = true;
-    this.fields[1][4] = "00000042140001CC";
     let msg = "";
     msg = msg.concat(this.header, this.mti, this.bitmap);
     const keys = Object.keys(this.fields);
@@ -39,5 +35,8 @@ export class MTI0210 extends ISO8583 {
       }
     }
     return msg;
+  }
+  getMti(): string {
+    return this.mti;
   }
 }

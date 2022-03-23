@@ -7,7 +7,7 @@ import {
   fields,
 } from "./util/utils_dataElements/utils";
 import { hex_to_bin } from "./util/hex_to_bin";
-import { MTI0200 } from "./lib/8583";
+import { MTI0200 } from "./lib/MTI0200";
 import { MTI0800 } from "./lib/MTI0800";
 
 const port = 3000;
@@ -15,21 +15,28 @@ const port_PROSA = 8000;
 const host = "0.0.0.0";
 const ACTIVO = "1";
 
+/**
+ * Funcion que envia msj echo a PROSA
+ * Sufrio cambios por modificaciones en la clase
+ * NOTA REVISAR!
+ * @returns
+ */
 function message0800(): { [key: string]: string } {
-  let message = {
-    0: "0800",
-    1: "",
-    7: "",
-    11: "000578", // ID unico ver como se resuelve
-    70: "",
-  };
+  let message = [
+    "0800",
+    "",
+    "",
+    "000578", // ID unico ver como se resuelve
+    "",
+  ];
+  let bitmap = "super(bitmap, dataElements, mti, header);"; // revisar
   /**
    * PDF PROSA (pag 43- 44)
    * flujo Adquiriente -> PROSA
    * header = ISO006000050
    */
   let header = "ISO006000050";
-  let message_echo = new MTI0800(message, message[0], header);
+  let message_echo = new MTI0800(bitmap, message, message[0], header);
   return { message: `${message_echo.getMessage()}` };
 }
 
@@ -64,17 +71,26 @@ server.on("connection", (socket: { [key: string]: any }) => {
         }
         if (util_checkBitmap(arrayCampos, message[3], fields)) {
           console.log(`BITMAP: ${message[2]} \nbitmap correct`);
+          // Generar msj 0200 para PROSA
+          let message_0200 = new MTI0200(
+            message[2],
+            message[3],
+            message[1],
+            message[0]
+          );
+
+          console.log(message_0200.getMessage());
         }
       } else {
         console.log(bin.length);
-        console.log("incorrect");
+        console.log("bitmap incorrect");
       }
-      socket.end();
     } else {
       console.log(
         `MTI: ${message[1]} \nHEADER: ${message[0]} \nERROR en MTI o HEADER`
       );
     }
+    socket.end();
   });
   socket.on("close", () => {
     console.log(`Comunicacion finalizada`);

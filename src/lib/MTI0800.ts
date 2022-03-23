@@ -1,8 +1,13 @@
 import { ISO8583 } from "./8583";
 
 export class MTI0800 extends ISO8583 {
-  constructor(msg: { [key: number]: string }, mti: string, header: string) {
-    super(msg, mti, header);
+  constructor(
+    bitmap: string,
+    dataElements: string[],
+    mti: string,
+    header: string
+  ) {
+    super(bitmap, dataElements, mti, header);
   }
 
   /**
