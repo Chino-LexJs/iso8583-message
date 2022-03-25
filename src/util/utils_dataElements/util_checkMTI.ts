@@ -5,7 +5,7 @@
  */
 export function util_checkMTI(mti: string): boolean {
   let mti_enabled = [
-    "0200",
+    "REQUEST", // 0200
     "0210",
     "0220",
     "0230",

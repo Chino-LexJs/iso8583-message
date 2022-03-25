@@ -29,35 +29,23 @@ let message01 = {
   102: "ABCD",
 };
 
-/**
- * 0 : header
- * 1 : mti
- * 2 : primary bitmap
- * 3 : data elements
- */
-let message02 = {
-  0: "ISO002600005",
-  1: "0200",
-  2: "3238048028808002",
-  3: [
-    "000000", // P3 Processing code
-    "000000054000", // P4 amount transaction
-    "0926183724", // P7 Transmition date y time
-    "190601", // P11 Systems trace audit number
-    "185100", // P12 Time, local transaction
-    "0926", // P13 Date, local transaction
-    "901", // P22 Point of service enrty mode
-    "00", // P25 Point of Service Condition Code
-    "[21]5579210000000386=0000", // P35 Track 2 Data
-    "000000005928", // P37 Retrieval reference number
-    "CEN50FRDSS787932", // P41 Card Acceptor Terminal ID
-    "484", // P49 Transaction Currency Code
-    "030101B0200VAFAAR8303306", // P63 Additional Data
-  ],
+const path = "/retail/charge";
+
+let JSON = {
+  MTI: "REQUEST", // Message Type Indetifier 0200
+  ProcessingCode: "000000", // P3 Processing code
+  AmountTransaction: "000000054000", // P4 amount transaction
+  TransmissionDateTim: "0926183724", // P7 Transmition date y time
+  LocalTransactionTime: "185100", // P12 Time, local transaction
+  LocalTransactionDate: "0926", // P13 Date, local transaction
+  PointServiceEntryMode: "901", // P22 Point of service enrty mode
+  PointServiceConditionCode: "00", // P25 Point of Service Condition Code
+  CardAcceptorTerminalID: "CEN50FRDSS787932", // P41 Card Acceptor Terminal ID
+  AdditionalData: "030101B0200VAFAAR8303306", // P63 Additional Data
 };
 
 socket.connect({ host: "localhost", port: 3000 }, () => {
-  socket.sendMessage(message02);
+  socket.sendMessage(JSON);
   socket.end();
 });
 socket.on("end", function () {
