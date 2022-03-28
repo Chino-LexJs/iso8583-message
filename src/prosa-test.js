@@ -13,7 +13,7 @@ const server = new Server();
 var socket = new JsonSocket(new Socket());
 
 function sendMessagePIDEAKY(message) {
-  socket.connect({ host: "localhost", port: 3000 });
+  //socket.connect({ host: "localhost", port: 3000 });
   socket.sendMessage(message);
   console.log("mensaje enviado");
 }
@@ -26,6 +26,8 @@ server.on("connection", (socket) => {
   socket.on("message", (message) => {
     console.log(message);
     // sendMessagePIDEAKY(message);
+    socket.sendMessage(message);
+    console.log("Mensaje enviado");
   });
 });
 

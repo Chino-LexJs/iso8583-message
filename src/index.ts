@@ -13,10 +13,13 @@ import { MTI0800 } from "./lib/MTI0800";
 const port = 3000;
 const port_PROSA = 8000;
 const host = "0.0.0.0";
-const path = "/retail/charge";
+let socketProsa: any;
+let socketClient: any;
 
 const server = new Server();
 
+var clients: any[] = [];
+var p37: number = 0;
 /**
  * Funcion que envia msj echo a PROSA
  * Sufrio cambios por modificaciones en la clase
@@ -43,31 +46,38 @@ function message0800(): { [key: string]: string } {
 }
 
 function sendMessagePROSA(message: { [key: string]: string }): void {
-  const socket = new JsonSocket(new Socket());
-  socket.connect({ host: "localhost", port: port_PROSA });
-  socket.sendMessage(message);
+  // const socket = new JsonSocket(new Socket());
+  // socket.connect({ host: "localhost", port: port_PROSA });
+  socketProsa.sendMessage(message);
 }
 
-server.on("connection", (socket: { [key: string]: any }) => {
+function recibe_and_sent() {
+  return new Promise(function (resolve) {
+    setTimeout(() => resolve("mensaje tardio"), 2000);
+  });
+}
+
+server.on("connection", (socket: any) => {
   console.log(
     `New connection from ${socket.remoteAddress} : ${socket.remotePort}`
   );
+
   socket = new JsonSocket(socket);
   socket.on("message", (message: { [key: string]: string }) => {
-    if (util_checkMTI(message.MTI)) {
-      console.log(`MTI: ${message.MTI} \nmti correct`);
-      /**
-       * Crear Componentes del msj 0200
-       * ISO literl
-       * Header
-       * Message Type Identifier
-       * Primary Bitmap
-       * Data Elements
-       */
-      sendMessagePROSA(message);
-    }
-
-    socket.end();
+    message.ID = (p37 + 1).toString();
+    clients.push({
+      socket: socket,
+      ID: message.ID,
+    });
+    console.log(message);
+    /**
+     * Llega mensaje de Terminal
+     * Se envia mensaje a Prosa
+     * Se recibe mensaje de Prosa
+     * Se envia respuesta a Terminal
+     */
+    sendMessagePROSA(message); // se envia mensaje a Prosa
+    // se recibe mensaje de Prosa
   });
   socket.on("close", () => {
     console.log(`Comunicacion finalizada`);
@@ -80,16 +90,23 @@ server.on("connection", (socket: { [key: string]: any }) => {
 
 server.listen({ port, host }, () => {
   console.log(`Server on port: ${server.address().port}`);
-  const socket = new JsonSocket(new Socket());
-  socket.connect({ host: "localhost", port: port_PROSA });
+  socketProsa = new JsonSocket(new Socket());
+  socketProsa.connect({ host: "localhost", port: port_PROSA });
   // Infinite loop
-  setInterval(() => {
-    socket.sendMessage(message0800());
-  }, 10000);
-  socket.on("close", () => {
+  // setInterval(() => {
+  //   socket.sendMessage(message0800());
+  // }, 10000);
+  socketProsa.on("message", (message: { [key: string]: string }) => {
+    console.log("Mensaje de PROSA");
+    console.log(message);
+    let clientSocket = clients[0].socket;
+    clientSocket.sendMessage(message);
+    clientSocket.end();
+    // console.log(socketClient.remoteAddress);
+    // socketClient.sendMessage(message);
+  });
+  socketProsa.on("close", () => {
     console.log(`Comunicacion finalizada`);
   });
-  socket.on("error", function (err: Error) {
-    console.log(`Error: ${err.message}`);
-  });
+  socketProsa.on("error", (): void => {});
 });
