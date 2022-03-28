@@ -64,7 +64,8 @@ server.on("connection", (socket: any) => {
 
   socket = new JsonSocket(socket);
   socket.on("message", (message: { [key: string]: string }) => {
-    message.ID = (p37 + 1).toString();
+    p37 = p37 + 1;
+    message.ID = p37.toString();
     clients.push({
       socket: socket,
       ID: message.ID,
@@ -80,7 +81,14 @@ server.on("connection", (socket: any) => {
     // se recibe mensaje de Prosa
   });
   socket.on("close", () => {
-    console.log(`Comunicacion finalizada`);
+    console.log(`Cantidad de clientes: ${clients.length}`);
+    clients.forEach((client) => {
+      let index = clients.indexOf(client);
+      clients.splice(index, 1);
+    });
+    console.log(
+      `Comunicacion finalizada \nCantidad de clientes : ${clients.length}`
+    );
   });
   // Don't forget to catch error, for your own sake.
   socket.on("error", function (err: Error) {
@@ -99,11 +107,13 @@ server.listen({ port, host }, () => {
   socketProsa.on("message", (message: { [key: string]: string }) => {
     console.log("Mensaje de PROSA");
     console.log(message);
-    let clientSocket = clients[0].socket;
-    clientSocket.sendMessage(message);
-    clientSocket.end();
-    // console.log(socketClient.remoteAddress);
-    // socketClient.sendMessage(message);
+    clients.forEach((client) => {
+      if (client.ID === message.ID) {
+        let clientSocket = client.socket;
+        clientSocket.sendMessage(message);
+        clientSocket.end();
+      }
+    });
   });
   socketProsa.on("close", () => {
     console.log(`Comunicacion finalizada`);
