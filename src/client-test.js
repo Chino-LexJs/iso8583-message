@@ -13,7 +13,7 @@ var jsonSocket = new JsonSocket(socket);
 let JSON = {
   MTI: "REQUEST", // Message Type Indetifier 0200
   ProcessingCode: "000000", // P3 Processing code
-  AmountTransaction: "000000054000", // P4 amount transaction
+  TransactionAmount: "000000054000", // P4 amount transaction
   TransmissionDateTim: "0926183724", // P7 Transmition date y time
   LocalTransactionTime: "185100", // P12 Time, local transaction
   LocalTransactionDate: "0926", // P13 Date, local transaction

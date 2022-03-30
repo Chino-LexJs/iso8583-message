@@ -16,8 +16,8 @@ import { fields } from "../util/utils_dataElements/fields";
  */
 
 export abstract class ISO8583 {
-  header: string;
-  mti: string;
+  header: string = "";
+  mti: string = "";
 
   /**
    * FIELDS:
@@ -30,19 +30,11 @@ export abstract class ISO8583 {
    * ]
    */
   public fields: {
-    [keys: number]: (string | number | boolean)[];
+    [keys: string]: (string | number | boolean)[];
   } = fields;
 
-  constructor(
-    bitmap: string,
-    dataElements: string[],
-    mti: string,
-    header: string
-  ) {
-    this.header = header;
-    this.mti = mti;
-
-    unpack(bitmap, dataElements, this.fields);
+  constructor(dataElements: { [keys: string]: string }) {
+    unpack(dataElements, this.fields);
   }
 
   /**

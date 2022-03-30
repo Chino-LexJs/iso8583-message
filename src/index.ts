@@ -25,7 +25,7 @@ var p37: number = 0;
  * Sufrio cambios por modificaciones en la clase
  * NOTA REVISAR!
  * @returns
- */
+ 
 function message0800(): { [key: string]: string } {
   let message = [
     "0800",
@@ -39,12 +39,12 @@ function message0800(): { [key: string]: string } {
    * PDF PROSA (pag 43- 44)
    * flujo Adquiriente -> PROSA
    * header = ISO006000050
-   */
+   
   let header = "ISO006000050";
   let message_echo = new MTI0800(bitmap, message, message[0], header);
   return { message: `${message_echo.getMessage()}` };
 }
-
+*/
 function sendMessagePROSA(message: { [key: string]: string }): void {
   // const socket = new JsonSocket(new Socket());
   // socket.connect({ host: "localhost", port: port_PROSA });
@@ -64,7 +64,7 @@ server.on("connection", (socket: any) => {
 
   socket = new JsonSocket(socket);
   socket.on("message", (message: { [key: string]: string }) => {
-    p37 = p37 + 1;
+    p37 = p37 + 1; // Ahora esta hard-codeado después se buscara en BD u otro metodo
     message.ID = p37.toString();
     clients.push({
       socket: socket,
@@ -73,11 +73,17 @@ server.on("connection", (socket: any) => {
     console.log(message);
     /**
      * Llega mensaje de Terminal
+     * Se crea msj ISO8583 de tipo 0200
      * Se envia mensaje a Prosa
      * Se recibe mensaje de Prosa
      * Se envia respuesta a Terminal
      */
-    sendMessagePROSA(message); // se envia mensaje a Prosa
+    let message0200 = new MTI0200(message);
+    sendMessagePROSA({
+      message: message0200.getMessage(),
+      ID: message.ID,
+    }); // se envia mensaje a Prosa
+    // sendMessagePROSA(message);
     // se recibe mensaje de Prosa
   });
   socket.on("close", () => {

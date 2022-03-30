@@ -9,7 +9,7 @@
  * ]
  */
 
-export const fields: {
+export const fields_test: {
   [keys: number]: (string | number | boolean)[];
 } = {
   0: ["n", 4, "MTI", false, "info"],
@@ -54,7 +54,7 @@ export const fields: {
   126: ["ans", 41, "Pos Preauthorization and Chargeback Data", false, "info"],
 };
 
-export const dataElements: {
+export const fields: {
   [keys: string]: (string | number | boolean)[];
 } = {
   MTI: [0, "n", 4, false, "info"],
