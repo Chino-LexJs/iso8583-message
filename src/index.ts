@@ -65,10 +65,10 @@ server.on("connection", (socket: any) => {
   socket = new JsonSocket(socket);
   socket.on("message", (message: { [key: string]: string }) => {
     p37 = p37 + 1; // Ahora esta hard-codeado después se buscara en BD u otro metodo
-    message.ID = p37.toString();
+    message.SystemsTrace = p37.toString();
     clients.push({
       socket: socket,
-      ID: message.ID,
+      SystemsTrace: message.SystemsTrace,
     });
     console.log(message);
     /**
@@ -81,7 +81,7 @@ server.on("connection", (socket: any) => {
     let message0200 = new MTI0200(message);
     sendMessagePROSA({
       message: message0200.getMessage(),
-      ID: message.ID,
+      SystemsTrace: message.SystemsTrace,
     }); // se envia mensaje a Prosa
     // sendMessagePROSA(message);
     // se recibe mensaje de Prosa
@@ -114,7 +114,7 @@ server.listen({ port, host }, () => {
     console.log("Mensaje de PROSA");
     console.log(message);
     clients.forEach((client) => {
-      if (client.ID === message.ID) {
+      if (client.SystemsTrace === message.SystemsTrace) {
         let clientSocket = client.socket;
         clientSocket.sendMessage(message);
         clientSocket.end();

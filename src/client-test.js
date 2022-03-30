@@ -12,16 +12,11 @@ var jsonSocket = new JsonSocket(socket);
 
 let JSON = {
   MTI: "REQUEST", // Message Type Indetifier 0200
-  ProcessingCode: "000000", // P3 Processing code
-  TransactionAmount: "000000054000", // P4 amount transaction
-  TransmissionDateTim: "0926183724", // P7 Transmition date y time
-  LocalTransactionTime: "185100", // P12 Time, local transaction
-  LocalTransactionDate: "0926", // P13 Date, local transaction
+  TransactionAmount: "100.00", // P4 amount transaction
+  LocalTransactionTime: "2022-03-29 12:24:22", // P12 y P13
   PointServiceEntryMode: "901", // P22 Point of service enrty mode
-  PointServiceConditionCode: "00", // P25 Point of Service Condition Code
+  PointServiceConditionCode: "00", // P25 Point of Service Condition Code PUEDE QUE NO SE USE
   CardAcceptorTerminalID: "CEN50FRDSS787932", // P41 Card Acceptor Terminal ID
-  AdditionalData: "030101B0200VAFAAR8303306", // P63 Additional Data
-  ID: "",
 };
 
 function connect() {
