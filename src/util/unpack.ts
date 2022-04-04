@@ -25,7 +25,6 @@ export function unpack(
   let date = new Date(Date.parse(dataElements.DATE_TIME));
   let LocalTransactionTime = "";
   let LocalTransactionDate = "";
-  let Amount = "";
   let day =
     date.getDate() < 10
       ? `0${date.getDate().toString()}`

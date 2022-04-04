@@ -1,3 +1,4 @@
+import { util_hexa_bin_Bitmap } from "../util/utils_dataElements/util_hexa_bin_Bitmap";
 import { ISO8583 } from "./8583";
 
 export class MTI0200 extends ISO8583 {
@@ -8,6 +9,12 @@ export class MTI0200 extends ISO8583 {
     super(dataElements);
     this.header = "ISO026000050";
     this.mti = "0200";
+    let DEs = [
+      1, 3, 4, 7, 11, 12, 13, 17, 18, 22, 32, 35, 37, 41, 43, 48, 49, 60, 61,
+      63, 100, 120, 121, 125,
+    ]; // DEs sin condicionales
+    let json_bitmap = util_hexa_bin_Bitmap(DEs);
+    this.bitmap = json_bitmap.hexaPB;
   }
   /**
    *
@@ -23,8 +30,8 @@ export class MTI0200 extends ISO8583 {
    * bitmap hexadecimal sin condicionales:
    * B238C40128A1801A
    */
-  private bitmap: string = "B238C40128A1801A";
 
+  private bitmap: string = "";
   public getBitmap(): string {
     return this.bitmap;
   }
