@@ -1,25 +1,19 @@
 const { Server, Socket } = require("net"),
   JsonSocket = require("json-socket");
-import {
-  util_checkMTI,
-  util_header,
-  util_checkBitmap,
-  fields,
-} from "./util/utils_dataElements/utils";
-import { componentsMessage } from "./util/componentsMessage";
+import { saveFolio } from "./db/saveFolio";
+import { saveMessage } from "./db/saveMessage";
 import { MTI0200 } from "./lib/MTI0200";
-import { MTI0800 } from "./lib/MTI0800";
 
 const port = 3000;
 const port_PROSA = 8000;
 const host = "0.0.0.0";
 let socketProsa: any;
-let socketClient: any;
 
 const server = new Server();
 
 var clients: any[] = [];
 var p37: number = 0;
+var n_folio: number;
 /**
  * Funcion que envia msj echo a PROSA
  * Sufrio cambios por modificaciones en la clase
@@ -51,20 +45,16 @@ function sendMessagePROSA(message: { [key: string]: string }): void {
   socketProsa.sendMessage(message);
 }
 
-function recibe_and_sent() {
-  return new Promise(function (resolve) {
-    setTimeout(() => resolve("mensaje tardio"), 2000);
-  });
-}
-
 server.on("connection", (socket: any) => {
   console.log(
     `New connection from ${socket.remoteAddress} : ${socket.remotePort}`
   );
 
   socket = new JsonSocket(socket);
-  socket.on("message", (message: { [key: string]: string }) => {
+  socket.on("message", async (message: { [key: string]: string }) => {
     p37 = p37 + 1; // Ahora esta hard-codeado después se buscara en BD u otro metodo
+    n_folio = await saveFolio(message.TERMINAL_ID, message.AMOUNT);
+    await saveMessage(n_folio, message, "0200", "terminal", "pideaky");
     message.SystemsTrace = p37.toString();
     clients.push({
       socket: socket,
@@ -113,8 +103,9 @@ server.listen({ port, host }, () => {
   socketProsa.on("message", (message: { [key: string]: string }) => {
     console.log("Mensaje de PROSA");
     console.log(message);
-    clients.forEach((client) => {
+    clients.forEach(async (client) => {
       if (client.SystemsTrace === message.SystemsTrace) {
+        await saveMessage(n_folio, message, "0210", "prosa", "pideaky");
         let clientSocket = client.socket;
         clientSocket.sendMessage(message);
         clientSocket.end();
