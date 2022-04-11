@@ -7,8 +7,24 @@ export async function saveMessage(
   origen: string,
   destino: string
 ) {
-  const text_mensaje =
-    "INSERT INTO mensaje(folio_id, mti, origen, destino, contenido) VALUES($1,$2,$3,$4,$5) RETURNING *";
-  const values_mensaje = [folio_id, mti, origen, destino, msj];
-  await pool.query(text_mensaje, values_mensaje);
+  try {
+    const text =
+      "INSERT INTO mensaje (id_folio, mti, origen, destino, contenido) VALUES (?,?,?,?,?)";
+    const values = {
+      id_folio: folio_id,
+      mti: mti,
+      origen: origen,
+      destino: destino,
+      contenido: JSON.stringify(msj),
+    };
+    await pool.query(text, [
+      values.id_folio,
+      values.mti,
+      values.origen,
+      values.destino,
+      values.contenido,
+    ]);
+  } catch (error) {
+    console.log(error);
+  }
 }

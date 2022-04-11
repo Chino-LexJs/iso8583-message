@@ -3,6 +3,7 @@ const { Server, Socket } = require("net"),
 import { saveFolio } from "./db/saveFolio";
 import { saveMessage } from "./db/saveMessage";
 import { MTI0200 } from "./lib/MTI0200";
+import { pool } from "./db/db";
 
 const port = 3000;
 const port_PROSA = 8000;
@@ -13,7 +14,7 @@ const server = new Server();
 
 var clients: any[] = [];
 var p37: number = 0;
-var n_folio: number;
+var n_folio: any;
 /**
  * Funcion que envia msj echo a PROSA
  * Sufrio cambios por modificaciones en la clase
@@ -54,7 +55,14 @@ server.on("connection", (socket: any) => {
   socket.on("message", async (message: { [key: string]: string }) => {
     p37 = p37 + 1; // Ahora esta hard-codeado después se buscara en BD u otro metodo
     n_folio = await saveFolio(message.TERMINAL_ID, message.AMOUNT);
-    await saveMessage(n_folio, message, "0200", "terminal", "pideaky");
+    console.log(message);
+    await saveMessage(
+      n_folio[0].insertId,
+      message,
+      "0200",
+      "terminal",
+      "pideaky"
+    );
     message.SystemsTrace = p37.toString();
     clients.push({
       socket: socket,
@@ -92,7 +100,7 @@ server.on("connection", (socket: any) => {
   });
 });
 
-server.listen({ port, host }, () => {
+server.listen({ port, host }, async () => {
   console.log(`Server on port: ${server.address().port}`);
   socketProsa = new JsonSocket(new Socket());
   socketProsa.connect({ host: "localhost", port: port_PROSA });
@@ -105,7 +113,7 @@ server.listen({ port, host }, () => {
     console.log(message);
     clients.forEach(async (client) => {
       if (client.SystemsTrace === message.SystemsTrace) {
-        await saveMessage(n_folio, message, "0210", "prosa", "pideaky");
+        await saveMessage(n_folio[0].insertId, message, "0210", "prosa", "pideaky");
         let clientSocket = client.socket;
         clientSocket.sendMessage(message);
         clientSocket.end();

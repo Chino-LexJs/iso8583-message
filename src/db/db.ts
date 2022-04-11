@@ -1,19 +1,15 @@
 require("dotenv").config();
-const { DB_USER, DB_PASSWORD, DB_HOST, DB_NAME } = process.env;
-const { Pool } = require("pg");
+const { DB_USER, DB_PASSWORD, DB_HOST, DB_NAME, DB_PORT } = process.env;
+import { createPool } from "mysql2/promise";
 
-const config = {
-  user: DB_USER,
+// create the connection to database
+const pool = createPool({
   host: DB_HOST,
-  database: DB_NAME,
+  user: DB_USER,
   password: DB_PASSWORD,
-  port: 5432,
-};
-
-const pool = new Pool(config);
-
-pool.connect(() => {
-  console.log("DB CONNECT");
+  port: 3306,
+  database: DB_NAME,
 });
+
 
 export { pool };

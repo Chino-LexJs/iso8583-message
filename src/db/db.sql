@@ -1,31 +1,30 @@
 create database pideakytest;
 
--- \l visualiza todas las BD creadas
--- \c pideakytest se conecta a la base de datos pideakytest
--- \dt lista las tablas creadas
--- \q para salir...
--- select * from folios | mensajes; para ver los datos de la tabla
+-- Especificar el uso de SQL:  \sql
+-- Conectarse a la base de datos:  \connect root@localhost
+-- show databases; Muestra las bases de datos creadas
+-- use pideakytest; Para conectarse a la base de datos pideakytest
+-- show columns from `table_name`; Para mostrar los parametros de cada tabla
 DROP TABLE IF EXISTS folio;
 
 DROP TABLE IF EXISTS mensaje;
 
-CREATE TYPE entidad AS ENUM ('pideaky', 'terminal', 'prosa');
-
 CREATE TABLE folio(
-    folio_id INT GENERATED ALWAYS AS IDENTITY,
+    folio_id INT AUTO_INCREMENT,
     terminal_id VARCHAR(255) NOT NULL,
     date_folio date NOT NULL,
     monto_folio VARCHAR(255) NOT NULL,
-    PRIMARY KEY(folio_id)
-);
+    PRIMARY KEY (folio_id)
+) ENGINE = INNODB;
 
 CREATE TABLE mensaje(
-    mensaje_id INT GENERATED ALWAYS AS IDENTITY,
-    folio_id INT NOT NULL,
+    mensaje_id INT AUTO_INCREMENT,
+    id_folio INT NOT NULL,
     mti VARCHAR(255) NOT NULL,
-    origen entidad NOT NULL,
-    destino entidad NOT NULL,
-    contenido json NOT NULL,
+    origen ENUM('pideaky', 'terminal', 'prosa') NOT NULL,
+    destino ENUM('pideaky', 'terminal', 'prosa') NOT NULL,
+    contenido JSON NOT NULL,
     PRIMARY KEY(mensaje_id),
-    CONSTRAINT fk_folio FOREIGN KEY(folio_id) REFERENCES folio(folio_id)
-);
+    INDEX (id_folio),
+    FOREIGN KEY (id_folio) REFERENCES folio(folio_id)
+) ENGINE = INNODB;

@@ -16,7 +16,7 @@ let JSON = {
   DATE_TIME: "2022-03-29 12:24:22", // P12 y P13
   ENTRY_MODE: "901", // P22 Point of service enrty mode
   CONDITION_CODE: "00", // P25 Point of Service Condition Code PUEDE QUE NO SE USE
-  TERMINAL_ID: "CEN50FRDSS787932", // P41 Card Acceptor Terminal ID
+  TERMINAL_ID: "CEN50FRDSS787932", // CEN50FRDSS787932 P41 Card Acceptor Terminal ID
 };
 
 function connect() {
