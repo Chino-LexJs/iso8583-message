@@ -14,6 +14,7 @@ const server = new Server();
 
 var clients: any[] = [];
 var p37: number = 0;
+var folio: any;
 var n_folio: any;
 /**
  * Funcion que envia msj echo a PROSA
@@ -40,9 +41,13 @@ function message0800(): { [key: string]: string } {
   return { message: `${message_echo.getMessage()}` };
 }
 */
-function sendMessagePROSA(message: { [key: string]: string }): void {
+async function sendMessagePROSA(message: {
+  [key: string]: string;
+}): Promise<void> {
   // const socket = new JsonSocket(new Socket());
   // socket.connect({ host: "localhost", port: port_PROSA });
+  await saveMessage(n_folio, message, "0200", "pideaky", "prosa");
+
   socketProsa.sendMessage(message);
 }
 
@@ -54,15 +59,10 @@ server.on("connection", (socket: any) => {
   socket = new JsonSocket(socket);
   socket.on("message", async (message: { [key: string]: string }) => {
     p37 = p37 + 1; // Ahora esta hard-codeado después se buscara en BD u otro metodo
-    n_folio = await saveFolio(message.TERMINAL_ID, message.AMOUNT);
+    folio = await saveFolio(message.TERMINAL_ID, message.AMOUNT);
+    n_folio = folio[0].insertId;
     console.log(message);
-    await saveMessage(
-      n_folio[0].insertId,
-      message,
-      "0200",
-      "terminal",
-      "pideaky"
-    );
+    await saveMessage(n_folio, message, "0200", "terminal", "pideaky");
     message.SystemsTrace = p37.toString();
     clients.push({
       socket: socket,
@@ -108,12 +108,13 @@ server.listen({ port, host }, async () => {
   // setInterval(() => {
   //   socket.sendMessage(message0800());
   // }, 10000);
-  socketProsa.on("message", (message: { [key: string]: string }) => {
+  socketProsa.on("message", async (message: { [key: string]: string }) => {
     console.log("Mensaje de PROSA");
     console.log(message);
+    await saveMessage(n_folio, message, "0210", "prosa", "pideaky");
     clients.forEach(async (client) => {
       if (client.SystemsTrace === message.SystemsTrace) {
-        await saveMessage(n_folio[0].insertId, message, "0210", "prosa", "pideaky");
+        await saveMessage(n_folio, message, "0210", "pideaky", "terminal");
         let clientSocket = client.socket;
         clientSocket.sendMessage(message);
         clientSocket.end();
