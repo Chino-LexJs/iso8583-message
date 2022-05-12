@@ -1,20 +1,13 @@
 const { Server, Socket } = require("net"),
   JsonSocket = require("json-socket");
-import { saveFolio } from "./db/saveFolio";
 import { saveMessage } from "./db/saveMessage";
-import { MTI0200 } from "./lib/MTI0200";
-import {
-  newConnection,
-  message_pos,
-  message_prosa,
-} from "./util/util_Socket";
+import { message_pos, message_prosa } from "./util/util_Socket";
 
 const port = 3000;
 const host = "0.0.0.0";
-const port_PROSA = 8000;
 const to_PROSA = {
   host: "localhost",
-  port: port_PROSA,
+  port: 8000,
 };
 let socketProsa: any;
 
@@ -31,14 +24,16 @@ async function sendMessagePROSA(
   await saveMessage(n_folio, message, "0200", "pideaky", "prosa");
   console.log(`Mensaje que se envia a Prosa:`);
   console.log(message);
-  socketProsa.sendMessage(message);
+  socketProsa.write(message.message, "utf8");
 }
 
 server.on("connection", (socket: any) => {
-  newConnection(socket);
+  console.log(
+    `New connection from ${socket.remoteAddress} : ${socket.remotePort}`
+  );
   socket = new JsonSocket(socket);
 
-  socket.on("message", async (message: { [key: string]: string }) => {
+  socket.on("message", async (message: { [key: string]: any } & string) => {
     message_pos(message, socket, clients, sendMessagePROSA);
   });
   socket.on("close", () => {
@@ -57,11 +52,11 @@ server.on("connection", (socket: any) => {
   });
 });
 
-server.listen({ port, host }, async () => {
-  console.log(`Server on port: ${server.address().port}`);
-  socketProsa = new JsonSocket(new Socket());
+function connectProsa() {
+  socketProsa = new Socket();
   socketProsa.connect(to_PROSA);
-  socketProsa.on("message", async (message: { [key: string]: string }) => {
+  socketProsa.setEncoding("utf8");
+  socketProsa.on("data", async (message: string) => {
     message_prosa(message, clients);
   });
   socketProsa.on("close", () => {
@@ -70,4 +65,8 @@ server.listen({ port, host }, async () => {
   socketProsa.on("error", (err: Error): void => {
     console.log(err);
   });
+}
+server.listen({ port, host }, async () => {
+  console.log(`Server on port: ${server.address().port}`);
+  connectProsa();
 });

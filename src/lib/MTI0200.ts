@@ -5,8 +5,8 @@ export class MTI0200 extends ISO8583 {
   then(arg0: (msj0200: any) => void) {
     throw new Error("Method not implemented.");
   }
-  constructor(dataElements: { [keys: string]: string }) {
-    super(dataElements);
+  constructor(dataElements: { [keys: string]: string } & string, mti: string) {
+    super(dataElements, mti);
     this.header = "ISO026000050";
     this.mti = "0200";
     let DEs = [

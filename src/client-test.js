@@ -17,6 +17,17 @@ let JSON = {
   ENTRY_MODE: "901", // P22 Point of service enrty mode
   CONDITION_CODE: "00", // P25 Point of Service Condition Code PUEDE QUE NO SE USE
   TERMINAL_ID: "CEN50FRDSS787932", // CEN50FRDSS787932 P41 Card Acceptor Terminal ID
+  DEVICE: {
+    serial_number: "PAS23SD3",
+    version: "100",
+    counter: 1,
+  },
+  KEY: {
+    check_value: "CAA9B0",
+    crc: "BF8425A0",
+    name: "A000BZPY72",
+    rsa: "8481B...EE861",
+  },
 };
 
 function connect() {

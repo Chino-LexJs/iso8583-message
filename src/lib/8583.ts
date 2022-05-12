@@ -1,4 +1,5 @@
 import { unpack } from "../util/unpack";
+import { unpack_prosa } from "../util/unpack_prosa";
 import obligatoryFields from "../util/obligatoryFields.js";
 import { fields } from "../util/utils_dataElements/fields";
 
@@ -33,8 +34,18 @@ export abstract class ISO8583 {
     [keys: string]: (string | number | boolean)[];
   } = fields;
 
-  constructor(dataElements: { [keys: string]: string }) {
-    unpack(dataElements, this.fields);
+  constructor(dataElements: { [keys: string]: string } & string, mti: string) {
+    switch (mti) {
+      case "REQUEST" || "0200":
+        unpack(dataElements, this.fields);
+        break;
+      case "0210":
+        unpack_prosa(dataElements, this.fields);
+        break;
+      default:
+        unpack(dataElements, this.fields);
+        break;
+    }
   }
 
   /**

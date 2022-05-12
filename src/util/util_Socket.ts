@@ -2,19 +2,12 @@ import { saveFolio } from "../db/saveFolio";
 import { saveMessage } from "../db/saveMessage";
 import { MTI0200 } from "../lib/MTI0200";
 
-function newConnection(socket: any) {
-  console.log(
-    `New connection from ${socket.remoteAddress} : ${socket.remotePort}`
-  );
-}
-
 async function message_pos(
-  message: { [key: string]: string },
+  message: { [key: string]: any } & string,
   socket: any,
   clients: any[] = [],
   sendMessagePROSA: Function
 ) {
-  console.log("hasta aca todo bien");
   var folio: any;
   var n_folio: any;
   folio = await saveFolio(message.TERMINAL_ID, message.AMOUNT);
@@ -27,7 +20,8 @@ async function message_pos(
     socket: socket,
     SystemsTrace: message.SystemsTrace,
   });
-  let message0200 = new MTI0200(message);
+
+  let message0200 = new MTI0200(message, message.MTI);
   await sendMessagePROSA(
     {
       message: message0200.getMessage(),
@@ -37,24 +31,25 @@ async function message_pos(
   );
 }
 
-async function message_prosa(
-  message: { [key: string]: string },
-  clients: any[] = []
-) {
+async function message_prosa(message: string, clients: any[] = []) {
   console.log(`Mensaje de Prosa:`);
   console.log(message);
+  let systemsTrace: string = "39";
+  let msj_json: { [key: string]: string } = {
+    MTI: "0210",
+  };
   await saveMessage(
-    parseInt(message.SystemsTrace),
-    message,
+    parseInt(systemsTrace),
+    msj_json,
     "0210",
     "prosa",
     "pideaky"
   );
   clients.forEach(async (client) => {
-    if (client.SystemsTrace === message.SystemsTrace) {
+    if (client.SystemsTrace === systemsTrace) {
       await saveMessage(
-        parseInt(message.SystemsTrace),
-        message,
+        parseInt(systemsTrace),
+        msj_json,
         "0210",
         "pideaky",
         "terminal"
@@ -68,4 +63,4 @@ async function message_prosa(
   });
 }
 
-export { newConnection, message_pos, message_prosa };
+export { message_pos, message_prosa };
