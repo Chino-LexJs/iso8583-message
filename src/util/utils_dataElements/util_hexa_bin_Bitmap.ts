@@ -88,3 +88,17 @@ export function util_hexa_bin_Bitmap(DEs: number[]): { [key: string]: string } {
 
   return json_bitmaps;
 }
+
+export function numberOfDataElements(DEs: {
+  [keys: string]: (string | number | boolean)[];
+}): number[] {
+  const PRESENTE = 3,
+    NUMBER_DE = 1;
+  let arrayOfNumbers: number[] = [];
+  for (let key in DEs) {
+    if (DEs[key][PRESENTE]) {
+      arrayOfNumbers.push(Number(DEs[key][NUMBER_DE]));
+    }
+  }
+  return arrayOfNumbers;
+}

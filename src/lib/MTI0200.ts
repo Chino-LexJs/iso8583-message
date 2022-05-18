@@ -1,4 +1,7 @@
-import { util_hexa_bin_Bitmap } from "../util/utils_dataElements/util_hexa_bin_Bitmap";
+import {
+  util_hexa_bin_Bitmap,
+  numberOfDataElements,
+} from "../util/utils_dataElements/util_hexa_bin_Bitmap";
 import { ISO8583 } from "./8583";
 
 export class MTI0200 extends ISO8583 {
@@ -9,12 +12,6 @@ export class MTI0200 extends ISO8583 {
     super(dataElements, mti);
     this.header = "ISO026000050";
     this.mti = "0200";
-    let DEs = [
-      1, 3, 4, 7, 11, 12, 13, 17, 18, 22, 32, 35, 37, 41, 43, 48, 49, 60, 61,
-      63, 100, 120, 121, 125,
-    ]; // DEs sin condicionales
-    let json_bitmap = util_hexa_bin_Bitmap(DEs);
-    this.bitmap = json_bitmap.hexaPB;
   }
   /**
    *
@@ -33,6 +30,9 @@ export class MTI0200 extends ISO8583 {
 
   private bitmap: string = "";
   public getBitmap(): string {
+    let DEs = numberOfDataElements(this.fields); // DEs sin condicionales
+    let json_bitmap = util_hexa_bin_Bitmap(DEs);
+    this.bitmap = json_bitmap.hexaPB;
     return this.bitmap;
   }
 
@@ -49,5 +49,10 @@ export class MTI0200 extends ISO8583 {
   }
   getMti(): string {
     return this.mti;
+  }
+  getFields(): {
+    [keys: string]: (string | number | boolean)[];
+  } {
+    return this.fields;
   }
 }

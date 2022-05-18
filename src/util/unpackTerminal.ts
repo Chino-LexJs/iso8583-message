@@ -25,23 +25,26 @@ function transactionDateTime(date_time: string): {
   );
   return dateTime;
 }
-
-export function unpackTerminal(message: { [key: string]: any }): {
-  [key: string]: string;
-} {
-  let dateTime = transactionDateTime(message.DATE_TIME);
-  let messageUnpack = {
-    TransactionAmount: message.AMOUNT.split(".").join(""), // falta agregarle ceros restantes para completar N(12)
-    LocalTransactionTime: dateTime.time,
-    LocalTransactionDate: dateTime.date,
-    PointServiceEntryMode: message.ENTRY_MODE,
-    PointServiceConditionCode: message.CONDITION_CODE,
-    CardAcceptorTerminalID: message.TERMINAL_ID,
-    AdditionalData: dataTokenTerminal(message.KEY, message.DEVICE),
-  };
-  return messageUnpack;
+function amount(amountMessage: string): string {
+  if (amountMessage.length === 12) {
+    return amountMessage;
+  } else {
+    while (amountMessage.length < 12) {
+      amountMessage = "0" + amountMessage;
+    }
+    return amountMessage;
+  }
 }
-
+function systemsTrace(systemsTraceNumber: string): string {
+  if (systemsTraceNumber.length === 6) {
+    return systemsTraceNumber;
+  } else {
+    while (systemsTraceNumber.length < 6) {
+      systemsTraceNumber = "0" + systemsTraceNumber;
+    }
+    return systemsTraceNumber;
+  }
+}
 function dataTokenTerminal(
   key: { [key: string]: string },
   device: { [key: string]: string }
@@ -59,4 +62,20 @@ function dataTokenTerminal(
   );
 
   return isoTokenES;
+}
+export function unpackTerminal(message: { [key: string]: any }): {
+  [key: string]: string;
+} {
+  let dateTime = transactionDateTime(message.DATE_TIME);
+  let messageUnpack = {
+    TransactionAmount: amount(message.AMOUNT.split(".").join("")), 
+    LocalTransactionTime: dateTime.time,
+    LocalTransactionDate: dateTime.date,
+    SystemsTraceAuditNumber: systemsTrace(message.SYSTEMS_TRANCE),
+    PointServiceEntryMode: message.ENTRY_MODE,
+    PointServiceConditionCode: message.CONDITION_CODE,
+    CardAcceptorTerminalID: message.TERMINAL_ID,
+    AdditionalData: dataTokenTerminal(message.KEY, message.DEVICE),
+  };
+  return messageUnpack;
 }
