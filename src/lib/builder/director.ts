@@ -1,4 +1,4 @@
-import { Terminal_InitKeys, Token_ES } from "../messageTypes";
+import { Terminal_InitKeys, Token_ES, Token_EW } from "../messageTypes";
 
 class Director {
   private builder: Builder;
@@ -182,7 +182,7 @@ class Director {
       es = "FUNCION_DETERMINADA_PARA_CADA_TOKEN____04",
       ew = "FUNCION_DETERMINADA_PARA_CADA_TOKEN_____05";
     tokensData = tokensData.concat(
-      `! Q1${q1.length.toString().padStart(5, "0")}${q1}`,
+      `! Q1${q1.length.toString().padStart(5, "0")} ${q1}`,
       `! Q2${q2.length.toString().padStart(5, "0")} ${q2}`,
       `! C4${c4.length.toString().padStart(5, "0")} ${c4}`,
       `! ES${es.length.toString().padStart(5, "0")} ${es}`,
@@ -200,10 +200,10 @@ class Director {
    * "5: ID Tabla de bines locales cargada en el PIN PAD", // (8) Identificado alfanumerico de la tabla de bines locales cargadas en el PIN PAD, eran puros ceros si el PID PAN nunca ah cargado una tabla de bines
    * "6: Version tabla de bines locales cargadas en el PIN PAD", // (2) Valor numerico para identificar la version de tabla de bines cargadas ene el PIN PAD, si no tiene cargadas se coloca "00"
    * "7: Bandera Peticion de Nueva Lllave" // (1) Indica si el PIN PAD esta pidiendo inicializacion de llaves "1" se requiere llave "0" no se pide llave
-   * @param {*} param0
+   * @param {Token_ES} campos
    * @returns {string} TOKEN ES
    */
-  private tokenES(campos: Token_ES) {
+  private tokenES(campos: Token_ES): string {
     let esData = "",
       campo01 = campos.version,
       campo02 = campos.n_serie,
@@ -222,5 +222,30 @@ class Director {
       campo07
     );
     return esData;
+  }
+  /**
+   * Token de requerimiento de Generación de Nueva Llave
+   * 1: Llave aleatoria cifrada (512) viene en el msj de la terminal como "rsa"
+   * 2: Check Value (6) se envia en el msj de la terminal como "check_value"
+   * 3: Version llave RSA publica (10) se envia en el msj de la terminal como "rsa_name"
+   * 4: Algoritmo de padding (2) metodo de padding, queda "01" como valor fijo
+   * 5: CRC32 de llave cifrada (8) se envia en el msj de la terminal como "crc32"
+   * @param {Token_EW} campos 
+   */
+  private tokenEW(campos: Token_EW) {
+    let ewData = "",
+      campo01 = campos.rsa,
+      campo02 = campos.check_value,
+      campo03 = campos.rsa_name,
+      campo04 = "01",
+      campo05 = campos.crc32;
+    ewData = ewData.concat(
+      campo01,
+      campo02,
+      campo03,
+      campo04,
+      campo05
+    );
+    return ewData;
   }
 }
