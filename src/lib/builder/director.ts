@@ -193,13 +193,13 @@ class Director {
     return p63;
   }
   /**
-   * "1: VersionSoftare", // (20) version de la aplicacion pin pad
-   * "2: Serie del PIN PAD", // (20) Marca y numero de serie del dispositivo
-   * "3: Configuracion del cifrado", // (1) "5" Activo para cifrado de datos sensitivos con DUKPT "0" No cifrar
-   * "4: ID Tabla de bines locales informado por la caja", // (8) Identificado alfanumerico asignado al comercio
-   * "5: ID Tabla de bines locales cargada en el PIN PAD", // (8) Identificado alfanumerico de la tabla de bines locales cargadas en el PIN PAD, eran puros ceros si el PID PAN nunca ah cargado una tabla de bines
-   * "6: Version tabla de bines locales cargadas en el PIN PAD", // (2) Valor numerico para identificar la version de tabla de bines cargadas ene el PIN PAD, si no tiene cargadas se coloca "00"
-   * "7: Bandera Peticion de Nueva Lllave" // (1) Indica si el PIN PAD esta pidiendo inicializacion de llaves "1" se requiere llave "0" no se pide llave
+   * "1: Version Softare (20) se envia en el msj de la terminal como "version"
+   * "2: Serie del PIN PAD (20) se envia en el msj de la terminal como "n_serie"
+   * "3: Configuracion del cifrado (1) valor fijo "5"
+   * "4: ID Tabla de bines locales informado por la caja (8) n de comercio guardado en la DB
+   * "5: ID Tabla de bines locales cargada en el PIN PAD (8) n de tabla de bines guardad en la DB
+   * "6: Version tabla de bines locales cargadas en el PIN PAD (2) n almacenado en la DB, si no se encuentra se coloca "00"
+   * "7: Bandera Peticion de Nueva Lllave (1) Indica si el PIN PAD esta pidiendo inicializacion de llaves "1" se requiere llave "0" no se pide llave
    * @param {Token_ES} campos
    * @returns {string} TOKEN ES
    */
@@ -230,7 +230,8 @@ class Director {
    * 3: Version llave RSA publica (10) se envia en el msj de la terminal como "rsa_name"
    * 4: Algoritmo de padding (2) metodo de padding, queda "01" como valor fijo
    * 5: CRC32 de llave cifrada (8) se envia en el msj de la terminal como "crc32"
-   * @param {Token_EW} campos 
+   * @param {Token_EW} campos
+   * @returns {string} TOKEN EW 
    */
   private tokenEW(campos: Token_EW) {
     let ewData = "",
