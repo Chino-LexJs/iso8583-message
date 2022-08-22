@@ -1,6 +1,5 @@
 import { unpack } from "../util/unpack";
 import { unpack_prosa } from "../util/unpack_prosa";
-import obligatoryFields from "../util/obligatoryFields.js";
 import { fields } from "../util/utils_dataElements/fields";
 
 /**

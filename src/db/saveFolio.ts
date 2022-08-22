@@ -5,8 +5,6 @@ export async function saveFolio(
   monto: string
 ): Promise<any> {
   try {
-    const text =
-      "INSERT INTO folio (terminal_id, date_folio, monto_folio) VALUES (?)";
     const now = new Date();
     const values = {
       terminal_id: terminal_id,

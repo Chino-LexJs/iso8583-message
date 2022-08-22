@@ -1,7 +1,10 @@
 const { Server, Socket } = require("net"),
   JsonSocket = require("json-socket");
+import { iso8583 } from "./lib/builder/iso8583";
 import { saveMessage } from "./db/saveMessage";
+import { Director } from "./lib/builder/director";
 import { message_pos, message_prosa } from "./util/util_Socket";
+import { MessageProsa } from "./lib/messageProsa";
 
 const port = 3000;
 const host = "0.0.0.0";
@@ -57,7 +60,10 @@ function connectProsa() {
   socketProsa.connect(to_PROSA);
   socketProsa.setEncoding("utf8");
   socketProsa.on("data", async (message: string) => {
-    message_prosa(message, clients);
+    //message_prosa(message, clients);
+    let messageProsa: MessageProsa = new MessageProsa(message);
+    let messageISO = messageProsa.getBuilder();
+    console.log(messageISO);
   });
   socketProsa.on("close", () => {
     console.log(`Comunicacion con PROSA finalizada`);

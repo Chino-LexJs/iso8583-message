@@ -1,3 +1,5 @@
+import { Builder } from "./builder";
+
 export class iso8583 implements Builder {
   P1!: string;
   P3!: string;

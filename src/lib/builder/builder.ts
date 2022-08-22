@@ -2,7 +2,7 @@
  * The Builder interface specifies methods for creating the different parts of
  * the Product objects.
  */
-interface Builder {
+export interface Builder {
   getP1(): string;
   getP3(): string;
   getP4(): string;
