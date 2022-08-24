@@ -1,4 +1,5 @@
 interface Terminal_InitKeys {
+  type: string; // CAMPO PARA DIFERENCIAR MSJ DE TERMINAL
   DATE_TIME: string;
   check_value: string;
   crc32: string;
@@ -41,30 +42,8 @@ interface Terminal_Response {
   RESPONSE_CODE: string;
 }
 
-interface Token_ES {
-  version: string; // terminal
-  n_serie: string; // terminal
-  bines_caja: string; // bd
-  bines_pinpad: string; // bd
-  bines_version: string; // bd
-  llave: string; // server
-}
-
-interface Token_EW {
-  rsa: string; // terminal
-  check_value: string; // terminal
-  rsa_name: string; // terminal
-  crc32: string; // terminal
-}
-
-interface Data_Element {
-  campo: number;
-  long: number;
-  value: string;
-  used: boolean;
-}
-
 interface Request_Payment {
+  type: string; // CAMPO PARA DIFERENCIAR MSJ DE TERMINAL
   amount: number;
   authentication: string;
   cardInformation: {
@@ -106,6 +85,29 @@ interface Request_Payment_Response {
     type: string;
     brand: string;
   };
+}
+
+interface Token_ES {
+  version: string; // terminal
+  n_serie: string; // terminal
+  bines_caja: string; // bd
+  bines_pinpad: string; // bd
+  bines_version: string; // bd
+  llave: string; // server
+}
+
+interface Token_EW {
+  rsa: string; // terminal
+  check_value: string; // terminal
+  rsa_name: string; // terminal
+  crc32: string; // terminal
+}
+
+interface Data_Element {
+  campo: number;
+  long: number;
+  value: string;
+  used: boolean;
 }
 
 interface message_db {

@@ -99,7 +99,10 @@ export class Director {
     );
     return message;
   }
-  public set0200_InitKeys(message: Request_Payment, id_request: number): void {
+  public set0200_InitKeys(
+    message: Terminal_InitKeys,
+    id_request: number
+  ): void {
     this.builder
       .setP1("000000001000018C")
       .setP3("000000")
@@ -262,7 +265,9 @@ export class Director {
    * @funcdesc Token header: "! 133011101361109261209 " (13): Token ID | (30): Token lenght| (11101361109261209): Token Data
    * @returns {string} P-63
    */
-  private tokens_initKeys(message: Request_Payment): string {
+  private tokens_initKeys(
+    message: Request_Payment | Terminal_InitKeys
+  ): string {
     let p63 = "";
     let tokenEs: Token_ES = {
       version: message.device.version,

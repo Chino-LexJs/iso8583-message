@@ -1,6 +1,12 @@
+import { Request } from "express";
 import { Director } from "./builder/director";
 import { iso8583 } from "./builder/iso8583";
-import { message_db, Request_Payment, Terminal_Request } from "./messageTypes";
+import {
+  message_db,
+  Request_Payment,
+  Terminal_InitKeys,
+  Terminal_Request,
+} from "./messageTypes";
 import { Prosa } from "./Prosa";
 import { TerminalCollection } from "./TerminalCollection";
 const JsonSocket = require("json-socket");
@@ -27,21 +33,39 @@ class Terminal {
   constructor(socket: any) {
     this.socket = new JsonSocket(socket);
     // this.socket.setEncoding("utf8"); // se configura socket para manejar cadena de caracteres en el buffer[]
-    this.socket.on("message", async (message: Request_Payment) => {
+    this.socket.on("message", async (message: any) => {
       console.log("\nMensaje de Terminal: ");
       console.log(message);
 
       let id_request: number = 124;
+      let messageToProsa: string = "";
       this.terminals.saveConnection(id_request, this.socket);
 
       // manejador de mensajes de terminal
       let unpack: iso8583 = new iso8583();
       let director: Director = new Director(unpack);
-      director.set0200(message, id_request);
+
+      // Diferenciar los distintos mensajes que pueden enviar desde terminal
+
+      switch (message.type.toString().toLowerCase()) {
+        case "init":
+          let initKeyMessage: Terminal_InitKeys = message;
+          director.set0200_InitKeys(initKeyMessage, id_request);
+          messageToProsa = director.get0200_InitKeys();
+          break;
+        case "request":
+          let requestMessage: Request_Payment = message;
+          director.set0200(requestMessage, id_request);
+          messageToProsa = director.get0200();
+          break;
+        default:
+          console.log("ERROR: Mensaje no soportado por el sistema");
+          this.socket.end();
+          break;
+      }
       console.log("\nMensaje a Prosa:");
-      console.log(director.get0200());
-      let prosa = Prosa.getInstance();
-      prosa.getSocket().write(director.get0200(), "utf8");
+      console.log(messageToProsa);
+      Prosa.getInstance().getSocket().write(messageToProsa, "utf8");
     });
     this.socket.on("close", () => {
       this.terminals.closeConnection(this.socket);
