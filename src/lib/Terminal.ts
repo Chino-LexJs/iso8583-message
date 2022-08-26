@@ -1,4 +1,6 @@
 import { Request } from "express";
+import { saveFolio } from "../db/folio.controllers";
+import { folio } from "../db/types";
 import { Director } from "./builder/director";
 import { iso8583 } from "./builder/iso8583";
 import {
@@ -55,6 +57,16 @@ class Terminal {
           break;
         case "request":
           let requestMessage: Request_Payment = message;
+
+          let folio: folio = {
+            date_folio: new Date(),
+            id_terminal: requestMessage.device.serial,
+            monto_folio: requestMessage.amount,
+          };
+          let id_folo = await saveFolio(folio);
+
+          console.log(id_folo);
+
           director.set0200(requestMessage, id_request);
           messageToProsa = director.get0200();
           break;

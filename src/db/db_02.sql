@@ -1,3 +1,10 @@
+create database pideakytest;
+
+-- Especificar el uso de SQL:  \sql
+-- Conectarse a la base de datos:  \connect root@localhost
+-- show databases; Muestra las bases de datos creadas
+-- use pideakytest; Para conectarse a la base de datos pideakytest
+-- show columns from `table_name`; Para mostrar los parametros de cada tabla
 DROP TABLE IF EXISTS terminal;
 
 DROP TABLE IF EXISTS folio;
@@ -14,13 +21,11 @@ CREATE TABLE terminal(
     PRIMARY KEY (terminal_id)
 ) ENGINE = INNODB;
 
-INSERT INTO terminal (terminal_id, direction) VALUES ("PB04204S60977","CALLE FALSA 123");
-
 CREATE TABLE folio(
     folio_id INT AUTO_INCREMENT,
     id_terminal VARCHAR(255) NOT NULL,
     date_folio date NOT NULL,
-    monto_folio DECIMAL(10,2) NOT NULL,
+    monto_folio INT NOT NULL,
     PRIMARY KEY (folio_id),
     INDEX (id_terminal),
     FOREIGN KEY (id_terminal) REFERENCES terminal(terminal_id)
@@ -55,3 +60,5 @@ CREATE TABLE request_response(
     INDEX (id_request),
     FOREIGN KEY (id_request) REFERENCES message_request(request_id)
 ) ENGINE = INNODB;
+
+INSERT INTO terminal (terminal_id, direction) VALUES ("PB04204S60977","CALLE FALSA 123");
