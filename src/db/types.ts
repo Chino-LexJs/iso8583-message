@@ -1,7 +1,6 @@
-import { Request_Payment } from "../lib/messageTypes";
+import { Request_Payment, Terminal_InitKeys } from "../lib/messageTypes";
 
 interface message_request {
-  request_id: number;
   id_folio: number;
   mti: string;
   content: Request_Payment;

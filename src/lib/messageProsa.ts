@@ -20,7 +20,6 @@ export class MessageProsa {
     let dataElementsFields: number[] = this.usedFields(message);
     let init = 0; // indice donde empiezan los data elements en el message
     let allFields: string = message.slice(32);
-    console.log(allFields);
     dataElementsFields.forEach((fiedlNumber) => {
       let field = this.dataElements.find((item) => item.campo == fiedlNumber);
       if (field != undefined) {
@@ -37,8 +36,8 @@ export class MessageProsa {
     message: string
   ): string {
     let dataElement: string = "";
-    let fieldLength_03 = [48, 54, 61, 63, 100, 102, 120, 121, 122, 125, 126];
-    let fieldLength_02 = [32, 35];
+    let fieldLength_03 = [48, 54, 61, 63, 102, 120, 121, 122, 125, 126];
+    let fieldLength_02 = [32, 35, 100];
     if (fieldLength_03.includes(field.campo)) {
       let length: number = Number(message.substr(init, 3));
       dataElement = message.substr(init, length + 3);
@@ -74,6 +73,7 @@ export class MessageProsa {
       fiedlNumber == 38 ||
       fiedlNumber == 39 ||
       fiedlNumber == 42 ||
+      fiedlNumber == 41 ||
       fiedlNumber == 43 ||
       fiedlNumber == 44 ||
       fiedlNumber == 45 ||
@@ -297,6 +297,12 @@ export class MessageProsa {
     {
       campo: 42,
       long: 15,
+      used: false,
+      value: "",
+    },
+    {
+      campo: 43,
+      long: 40,
       used: false,
       value: "",
     },

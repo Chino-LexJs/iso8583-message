@@ -1,6 +1,7 @@
 import { Request } from "express";
 import { saveFolio } from "../db/folio.controllers";
-import { folio } from "../db/types";
+import { saveRequest } from "../db/request.controllers";
+import { folio, message_request } from "../db/types";
 import { Director } from "./builder/director";
 import { iso8583 } from "./builder/iso8583";
 import {
@@ -39,42 +40,60 @@ class Terminal {
       console.log("\nMensaje de Terminal: ");
       console.log(message);
 
-      let id_request: number = 124;
       let messageToProsa: string = "";
-      this.terminals.saveConnection(id_request, this.socket);
 
       // manejador de mensajes de terminal
       let unpack: iso8583 = new iso8583();
       let director: Director = new Director(unpack);
 
       // Diferenciar los distintos mensajes que pueden enviar desde terminal
-
       switch (message.type.toString().toLowerCase()) {
-        case "init":
+        case "init": {
+          /*
           let initKeyMessage: Terminal_InitKeys = message;
+          let folio: folio = {
+            date_folio: new Date(),
+            id_terminal: initKeyMessage.device.serial,
+            monto_folio: 0,
+          };
+          let id_folio = await saveFolio(folio);
+          let request: message_request = {
+            id_folio,
+            mti: "0200",
+            content: initKeyMessage,
+          };
+          let id_request = await saveRequest(request);
+          this.terminals.saveConnection(id_request, this.socket);
           director.set0200_InitKeys(initKeyMessage, id_request);
           messageToProsa = director.get0200_InitKeys();
           break;
-        case "request":
+          */
+        }
+        case "request": {
           let requestMessage: Request_Payment = message;
-
           let folio: folio = {
             date_folio: new Date(),
             id_terminal: requestMessage.device.serial,
             monto_folio: requestMessage.amount,
           };
-          let id_folo = await saveFolio(folio);
-
-          console.log(id_folo);
-
+          let id_folio = await saveFolio(folio);
+          let request: message_request = {
+            id_folio,
+            mti: "0200",
+            content: requestMessage,
+          };
+          let id_request = await saveRequest(request);
+          this.terminals.saveConnection(id_request, this.socket);
           director.set0200(requestMessage, id_request);
           messageToProsa = director.get0200();
           break;
+        }
         default:
           console.log("ERROR: Mensaje no soportado por el sistema");
           this.socket.end();
           break;
       }
+
       console.log("\nMensaje a Prosa:");
       console.log(messageToProsa);
       Prosa.getInstance().getSocket().write(messageToProsa, "utf8");

@@ -42,6 +42,7 @@ class TerminalCollection {
     message: Request_Payment_Response
   ) {
     let client = this.terminalCollections.get(id_request);
+    console.log();
     client.sendMessage(message);
     this.terminalCollections.delete(id_request);
     client.end();

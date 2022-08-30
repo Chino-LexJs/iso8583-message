@@ -1,6 +1,5 @@
 interface Terminal_InitKeys {
   type: string; // CAMPO PARA DIFERENCIAR MSJ DE TERMINAL
-  DATE_TIME: string;
   check_value: string;
   crc32: string;
   device: {

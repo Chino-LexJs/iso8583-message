@@ -74,6 +74,8 @@ export class Prosa {
         console.log("Mensaje de Prosa: ", message);
         let message0210 = new MessageProsa(message);
         let director = new Director(message0210.getBuilder());
+        console.log(director);
+        console.log("\n\n");
         let resTerminal = director.getRes0210();
         console.log("resTerminal:");
         console.log(resTerminal);

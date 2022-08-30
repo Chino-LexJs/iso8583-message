@@ -17,6 +17,7 @@ export class iso8583 implements Builder {
   P37!: string;
   P38!: string;
   P39!: string;
+  P41!: string;
   P42!: string;
   P43!: string;
   P44!: string;
@@ -87,6 +88,9 @@ export class iso8583 implements Builder {
   }
   getP39(): string {
     return this.P39;
+  }
+  getP41(): string {
+    return this.P41;
   }
   getP42(): string {
     return this.P42;
@@ -221,6 +225,10 @@ export class iso8583 implements Builder {
   }
   setP39(data: string): Builder {
     this.P39 = data;
+    return this;
+  }
+  setP41(data: string): Builder {
+    this.P41 = data;
     return this;
   }
   setP42(data: string): Builder {

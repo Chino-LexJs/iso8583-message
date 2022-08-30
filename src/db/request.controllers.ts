@@ -11,9 +11,10 @@ async function getRequestById(id: number): Promise<any> {
 }
 async function saveRequest(message: message_request): Promise<any> {
   try {
+    let content = JSON.stringify(message.content);
     let res: any = await pool.query(
-      "INSERT INTO message_request (request_id, id_folio, mti, content) VALUES (?,?,?,?)",
-      [message.request_id, message.id_folio, message.mti, message.content]
+      "INSERT INTO message_request (id_folio, mti, content) VALUES (?,?,?)",
+      [message.id_folio, message.mti, content]
     );
     return res[0].insertId;
   } catch (error) {

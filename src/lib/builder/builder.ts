@@ -19,6 +19,7 @@ export interface Builder {
   getP37(): string;
   getP38(): string;
   getP39(): string;
+  getP41(): string;
   getP42(): string;
   getP43(): string;
   getP44(): string;
@@ -57,6 +58,7 @@ export interface Builder {
   setP37(data: string): Builder;
   setP38(data: string): Builder;
   setP39(data: string): Builder;
+  setP41(data: string): Builder;
   setP42(data: string): Builder;
   setP43(data: string): Builder;
   setP44(data: string): Builder;

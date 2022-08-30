@@ -133,9 +133,11 @@ export class Director {
   public get0200(): string {
     let message: string = "";
     let header = "ISO026000050",
+      messageTypeId = "0200",
       bitmap = "B238C4810861801A";
     message = message.concat(
       header,
+      messageTypeId,
       bitmap,
       this.builder.getP1(),
       this.builder.getP3(),
@@ -175,7 +177,7 @@ export class Director {
       .setP12(this.localTransactionTime())
       .setP13(this.localTransactionDate())
       .setP17(this.captureDate())
-      .setP18("????") // @todo Merchart Type otorga PROSA
+      .setP18("5399") // @todo Merchart Type otorga PROSA
       .setP22(this.entryMode(message.entry_mode))
       .setP25("00")
       .setP32("11???????????") // @todo Acquiring Institution ID Code otorga PROSA se recupera de la DB
@@ -185,15 +187,50 @@ export class Director {
       .setP48("027???????????????????????????") // @todo function buscarn en DB Retailer ID, Group y Region (aclarar con OSCAR)
       .setP49("484")
       .setP60("016????????????????") // @todo function procesar en SERVER y buscar en BD Terminal Owner FIID, Logical Network, Time Offset y Pseudo Terminal ID
-      .setP61("01900000000???????????") // @todo informacion de la tarjeta Category, Save Account Indicator, Interchange Response Code
+      .setP61("0190000000000000000000") // @todo informacion de la tarjeta Category, Save Account Indicator, Interchange Response Code
       .setP63(this.tokens_initKeys(message)) // @todo function con TOKEN ES, TOKEN EZ
-      .setS100("???????????") // @todo function recupera de DB codigo fijo otorgado por PROSA
+      .setS100("010") // @todo function recupera de DB codigo fijo otorgado por PROSA
       .setS120("029?????????????????????????????") // @todo function buscar en DB datos de la Terminal: Name and Location, Terminal Brach ID
-      .setS121("020????????????????????") // @todo function buscar en DB datos varios de Terminal (CRT)
-      .setS125("012????????????") // @todo function procesar datos de Tarjteta (Services|Originador|Destination|Draft Capture Flag)
+      .setS121("02000000000000000000000") // @todo function buscar en DB datos varios de Terminal (CRT)
+      .setS125("012ADINTR000000") // @todo function procesar datos de Tarjteta (Services|Originador|Destination|Draft Capture Flag)
       .setS126("03800000000000000000000000000000000000000"); // @todo Aclarar con Oscar si todos son ceros
   }
-
+  public get0210(): string {
+    let message: string = "";
+    let header = "ISO026000050",
+      messageTypeId = "0210",
+      bitmap = "B238C4012E818018";
+    message = message.concat(
+      header,
+      messageTypeId,
+      bitmap,
+      this.builder.getP1(),
+      this.builder.getP3(),
+      this.builder.getP4(),
+      this.builder.getP7(),
+      this.builder.getP11(),
+      this.builder.getP12(),
+      this.builder.getP13(),
+      this.builder.getP17(),
+      this.builder.getP18(),
+      this.builder.getP22(),
+      this.builder.getP32(),
+      this.builder.getP35(),
+      this.builder.getP37(),
+      this.builder.getP38(),
+      this.builder.getP39(),
+      this.builder.getP41(),
+      this.builder.getP48(),
+      this.builder.getP49(),
+      this.builder.getP60(),
+      this.builder.getP61(),
+      this.builder.getS100(),
+      this.builder.getS120(),
+      this.builder.getS121(),
+      this.builder.getS125()
+    );
+    return message;
+  }
   /**
    * @function trasmissionDateAndTime
    * @funcdesc Data element P-7 fecha y hora del servidor en formato: MMDDhhmmss
@@ -292,7 +329,7 @@ export class Director {
       `! EW${ew.length.toString().padStart(5, "0")} ${ew}`
     );
     p63 = p63.concat(headerToken, tokensData.length.toString(), tokensData);
-    p63 = p63.length.toString().padStart(5, "0") + p63;
+    p63 = p63.length.toString().padStart(3, "0") + p63;
     return p63;
   }
   /**
