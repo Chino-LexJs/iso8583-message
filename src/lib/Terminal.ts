@@ -1,7 +1,7 @@
 import { Request } from "express";
 import { saveFolio } from "../db/folio.controllers";
 import { saveRequest } from "../db/request.controllers";
-import { folio, message_request } from "../db/types";
+import { folio, message_request, message_request_initKeys } from "../db/types";
 import { Director } from "./builder/director";
 import { iso8583 } from "./builder/iso8583";
 import {
@@ -49,7 +49,6 @@ class Terminal {
       // Diferenciar los distintos mensajes que pueden enviar desde terminal
       switch (message.type.toString().toLowerCase()) {
         case "init": {
-          /*
           let initKeyMessage: Terminal_InitKeys = message;
           let folio: folio = {
             date_folio: new Date(),
@@ -57,7 +56,7 @@ class Terminal {
             monto_folio: 0,
           };
           let id_folio = await saveFolio(folio);
-          let request: message_request = {
+          let request: message_request_initKeys = {
             id_folio,
             mti: "0200",
             content: initKeyMessage,
@@ -67,7 +66,6 @@ class Terminal {
           director.set0200_InitKeys(initKeyMessage, id_request);
           messageToProsa = director.get0200_InitKeys();
           break;
-          */
         }
         case "request": {
           let requestMessage: Request_Payment = message;

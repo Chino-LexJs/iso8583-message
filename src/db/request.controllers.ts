@@ -1,5 +1,5 @@
 import { pool } from "./db";
-import { message_request } from "./types";
+import { message_request, message_request_initKeys } from "./types";
 
 async function getRequestById(id: number): Promise<any> {
   try {
@@ -9,7 +9,9 @@ async function getRequestById(id: number): Promise<any> {
     console.log(error);
   }
 }
-async function saveRequest(message: message_request): Promise<any> {
+async function saveRequest(
+  message: message_request | message_request_initKeys
+): Promise<any> {
   try {
     let content = JSON.stringify(message.content);
     let res: any = await pool.query(

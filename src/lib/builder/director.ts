@@ -67,9 +67,11 @@ export class Director {
   public get0200_InitKeys(): string {
     let message = "";
     let header = "ISO026000050",
-      bitmap = "B238C4812861801A";
+      messageTypeId = "0200",
+      bitmap = "B238C4810861801A";
     message = message.concat(
       header,
+      messageTypeId,
       bitmap,
       this.builder.getP1(),
       this.builder.getP3(),
@@ -106,14 +108,14 @@ export class Director {
     this.builder
       .setP1("000000001000018C")
       .setP3("000000")
-      .setP4("000000000000")
+      .setP4("0".padStart(12, "0"))
       .setP7(this.trasmissionDateAndTime())
-      .setP11(id_request.toString().padStart(6, "0")) // id_request 6 digitos
+      .setP11(id_request.toString().padStart(6, "0"))
       .setP12(this.localTransactionTime())
       .setP13(this.localTransactionDate())
       .setP17(this.captureDate())
-      .setP18("????") // @todo Merchart Type otorga PROSA
-      .setP22("010")
+      .setP18("5399") // @todo Merchart Type otorga PROSA
+      .setP22(this.entryMode(""))
       .setP25("00")
       .setP32("11???????????") // @todo Acquiring Institution ID Code otorga PROSA se recupera de la DB
       .setP37(id_request.toString().padStart(12, "0")) // id_request 12 digitos
@@ -122,12 +124,12 @@ export class Director {
       .setP48("027???????????????????????????") // @todo function buscarn en DB Retailer ID, Group y Region (aclarar con OSCAR)
       .setP49("484")
       .setP60("016????????????????") // @todo function procesar en SERVER y buscar en BD Terminal Owner FIID, Logical Network, Time Offset y Pseudo Terminal ID
-      .setP61("01900000000???????????") // @todo informacion de la tarjeta Category, Save Account Indicator, Interchange Response Code
-      .setP63(this.tokens_initKeys(message)) // @todo function con Tokens Q1, Q2, C4, ES y EW
-      .setS100("???????????") // @todo function recupera de DB codigo fijo otorgado por PROSA
+      .setP61("0190000000000000000000") // @todo informacion de la tarjeta Category, Save Account Indicator, Interchange Response Code
+      .setP63(this.tokens_initKeys(message)) // @todo function con TOKEN ES, TOKEN EZ
+      .setS100("010") // @todo function recupera de DB codigo fijo otorgado por PROSA
       .setS120("029?????????????????????????????") // @todo function buscar en DB datos de la Terminal: Name and Location, Terminal Brach ID
-      .setS121("020????????????????????") // @todo function buscar en DB datos varios de Terminal (CRT)
-      .setS125("012????????????") // @todo function procesar datos de Tarjteta (Services|Originador|Destination|Draft Capture Flag)
+      .setS121("02000000000000000000000") // @todo function buscar en DB datos varios de Terminal (CRT)
+      .setS125("012ADINTR000000") // @todo function procesar datos de Tarjteta (Services|Originador|Destination|Draft Capture Flag)
       .setS126("03800000000000000000000000000000000000000"); // @todo Aclarar con Oscar si todos son ceros
   }
   public get0200(): string {
@@ -302,25 +304,29 @@ export class Director {
    * @funcdesc Token header: "! 133011101361109261209 " (13): Token ID | (30): Token lenght| (11101361109261209): Token Data
    * @returns {string} P-63
    */
-  private tokens_initKeys(
-    message: Request_Payment | Terminal_InitKeys
-  ): string {
+  private tokens_initKeys(message: Terminal_InitKeys): string {
     let p63 = "";
     let tokenEs: Token_ES = {
       version: message.device.version,
       n_serie: message.device.serial,
       bines_caja: "",
       bines_pinpad: "",
-      bines_version: "",
+      bines_version: "00",
       llave: "1",
+    };
+    let tokenEw: Token_EW = {
+      check_value: message.check_value,
+      crc32: message.crc32,
+      rsa: message.rsa,
+      rsa_name: message.rsa_name,
     };
     let headerToken = "& 05",
       tokensData = "",
       q1 = "FUNCION_DETERMINADA_PARA_CADA_TOKEN_01",
       q2 = "FUNCION_DETERMINADA_PARA_CADA_TOKEN__02",
       c4 = "FUNCION_DETERMINADA_PARA_CADA_TOKEN___03",
-      es = "FUNCION_DETERMINADA_PARA_CADA_TOKEN____04",
-      ew = "FUNCION_DETERMINADA_PARA_CADA_TOKEN_____05";
+      es = this.tokenES(tokenEs),
+      ew = this.tokenEW(tokenEw);
     tokensData = tokensData.concat(
       `! Q1${q1.length.toString().padStart(5, "0")} ${q1}`,
       `! Q2${q2.length.toString().padStart(5, "0")} ${q2}`,
@@ -336,10 +342,10 @@ export class Director {
   private token_transaction(message: Request_Payment): string {
     let p63 = "";
     let tokenEs: Token_ES = {
-      version: message.device.version.padStart(20, "?"),
-      n_serie: message.device.serial.padStart(20, "?"),
-      bines_caja: message.cardInformation.bin.padStart(8, "?"),
-      bines_pinpad: "".padStart(8, "0"),
+      version: message.device.version,
+      n_serie: message.device.serial,
+      bines_caja: message.cardInformation.bin,
+      bines_pinpad: "",
       bines_version: "00", // No hay pinpad cargago -> 00, sino [00, FF]
       llave: "1",
     };
@@ -367,11 +373,11 @@ export class Director {
    */
   private tokenES(campos: Token_ES): string {
     let esData = "",
-      campo01 = campos.version,
-      campo02 = campos.n_serie,
+      campo01 = campos.version.padStart(20, "?"),
+      campo02 = campos.n_serie.padStart(20, "?"),
       campo03 = "5",
-      campo04 = campos.bines_caja,
-      campo05 = campos.bines_pinpad,
+      campo04 = campos.bines_caja.padStart(8, "?"),
+      campo05 = campos.bines_pinpad.padStart(8, "0"),
       campo06 = campos.bines_version,
       campo07 = campos.llave;
     esData = esData.concat(
