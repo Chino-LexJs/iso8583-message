@@ -188,7 +188,7 @@ export class Director {
       .setP49("484")
       .setP60("016????????????????") // @todo function procesar en SERVER y buscar en BD Terminal Owner FIID, Logical Network, Time Offset y Pseudo Terminal ID
       .setP61("0190000000000000000000") // @todo informacion de la tarjeta Category, Save Account Indicator, Interchange Response Code
-      .setP63(this.tokens_initKeys(message)) // @todo function con TOKEN ES, TOKEN EZ
+      .setP63(this.token_transaction(message)) // @todo function con TOKEN ES, TOKEN EZ
       .setS100("010") // @todo function recupera de DB codigo fijo otorgado por PROSA
       .setS120("029?????????????????????????????") // @todo function buscar en DB datos de la Terminal: Name and Location, Terminal Brach ID
       .setS121("02000000000000000000000") // @todo function buscar en DB datos varios de Terminal (CRT)
@@ -332,6 +332,28 @@ export class Director {
     p63 = p63.length.toString().padStart(3, "0") + p63;
     return p63;
   }
+
+  private token_transaction(message: Request_Payment): string {
+    let p63 = "";
+    let tokenEs: Token_ES = {
+      version: message.device.version.padStart(20, "?"),
+      n_serie: message.device.serial.padStart(20, "?"),
+      bines_caja: message.cardInformation.bin.padStart(8, "?"),
+      bines_pinpad: "".padStart(8, "0"),
+      bines_version: "00", // No hay pinpad cargago -> 00, sino [00, FF]
+      llave: "1",
+    };
+    let headerToken = "& 01",
+      tokensData = "",
+      es = this.tokenES(tokenEs);
+    tokensData = tokensData.concat(
+      `! ES${es.length.toString().padStart(5, "0")} ${es}`
+    );
+    p63 = p63.concat(headerToken, tokensData.length.toString(), tokensData);
+    p63 = p63.length.toString().padStart(3, "0") + p63;
+    return p63;
+  }
+
   /**
    * "1: Version Softare (20) se envia en el msj de la terminal como "version"
    * "2: Serie del PIN PAD (20) se envia en el msj de la terminal como "n_serie"
