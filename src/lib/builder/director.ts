@@ -1,11 +1,17 @@
+import { array_to_hexa } from "../../util/array_to_hexa";
 import {
+  InitKeys_Response,
   Request_Payment,
   Request_Payment_Response,
   Terminal_InitKeys,
   Terminal_Request,
   Terminal_Response,
+  Token_C4,
   Token_ES,
   Token_EW,
+  Token_EX,
+  Token_Q1,
+  Token_Q2,
 } from "../messageTypes";
 import { Builder } from "./builder";
 
@@ -64,11 +70,34 @@ export class Director {
     };
     return res;
   }
+  public getRes0210_initKeys(): InitKeys_Response {
+    let token_EX: Token_EX = this.get_tokenEX();
+    let res: InitKeys_Response = {
+      request_id: this.builder.getP37(), // retrieval reference number,
+      request_date: this.builder.getP13(), // local transaction date,
+      request_status: this.builder.getP39() == "00" ? true : false, // response code,
+      http_code: 0,
+      trace_id: this.builder.getP11(), // system trace audit number
+      error_code: this.builder.getP32().slice(2), // Acquiring Intitution ID Code,
+      description: this.builder.getP39() == "00" ? "APROBADA" : "DESAPROBADA",
+      authorization: this.builder.getP38(),
+      ksn: token_EX.ksn,
+      key: token_EX.key_cifrada,
+      key_crc32: token_EX.crc32,
+      key_check_value: token_EX.check_value,
+    };
+    return res;
+  }
   public get0200_InitKeys(): string {
+    let dataElements: number[] = [];
+    Object.keys(this.getBuilder()).forEach((de) => {
+      dataElements.push(Number(de.slice(1)));
+    });
     let message = "";
     let header = "ISO026000050",
       messageTypeId = "0200",
-      bitmap = "B238C4810861801A";
+      bitmap = array_to_hexa(dataElements).hexaPB;
+    this.builder.setP1(array_to_hexa(dataElements).hexaSB);
     message = message.concat(
       header,
       messageTypeId,
@@ -133,10 +162,15 @@ export class Director {
       .setS126("03800000000000000000000000000000000000000"); // @todo Aclarar con Oscar si todos son ceros
   }
   public get0200(): string {
+    let dataElements: number[] = [];
+    Object.keys(this.getBuilder()).forEach((de) => {
+      dataElements.push(Number(de.slice(1)));
+    });
     let message: string = "";
     let header = "ISO026000050",
       messageTypeId = "0200",
-      bitmap = "B238C4810861801A";
+      bitmap = array_to_hexa(dataElements).hexaPB;
+    this.builder.setP1(array_to_hexa(dataElements).hexaSB);
     message = message.concat(
       header,
       messageTypeId,
@@ -182,7 +216,7 @@ export class Director {
       .setP18("5399") // @todo Merchart Type otorga PROSA
       .setP22(this.entryMode(message.entry_mode))
       .setP25("00")
-      .setP32("11???????????") // @todo Acquiring Institution ID Code otorga PROSA se recupera de la DB
+      .setP32("1109000000003") // @todo Acquiring Institution ID Code otorga PROSA se recupera de la DB
       .setP37(id_request.toString().padStart(12, "0")) // id_request 12 digitos
       .setP42(message.device.serial.padStart(15, "0"))
       .setP43("????????????????????????????????????????") // @todo function buscar en DB información de la terminal (direccion) 40 digitos
@@ -198,10 +232,15 @@ export class Director {
       .setS126("03800000000000000000000000000000000000000"); // @todo Aclarar con Oscar si todos son ceros
   }
   public get0210(): string {
+    let dataElements: number[] = [];
+    Object.keys(this.getBuilder()).forEach((de) => {
+      dataElements.push(Number(de.slice(1)));
+    });
     let message: string = "";
     let header = "ISO026000050",
       messageTypeId = "0210",
-      bitmap = "B238C4012E818018";
+      bitmap = array_to_hexa(dataElements).hexaPB;
+    this.builder.setP1(array_to_hexa(dataElements).hexaSB);
     message = message.concat(
       header,
       messageTypeId,
@@ -226,12 +265,34 @@ export class Director {
       this.builder.getP49(),
       this.builder.getP60(),
       this.builder.getP61(),
+      this.builder.getP63() ? this.builder.getP63() : "",
       this.builder.getS100(),
       this.builder.getS120(),
       this.builder.getS121(),
       this.builder.getS125()
     );
     return message;
+  }
+  /**
+   * Retorna un valor booleano del contenido del campo 07 del token ES
+   * Esta funcion esta ajustada a que el token siempre tenga una longitud fija de 00060 como dicta el pdf ESTÁNDAR HOST POS ADQUIRENTE Versión 7.0.8
+   * @returns {boolean} Si el campo 07 del token ES es 1 se retorna true, en caso contrario false
+   */
+  public getField07_ES(): number {
+    let p63 = this.builder.getP63();
+    return Number(p63[p63.indexOf("! ES") + 69]);
+  }
+  private get_tokenEX(): Token_EX {
+    let p63 = this.builder.getP63();
+    let indexEX = p63.indexOf("! EX") + 2;
+    let tokenEX: Token_EX = {
+      key_cifrada: p63.substr(indexEX + 8, 32),
+      ksn: p63.substr(indexEX + 40, 20),
+      check_value: p63.substr(indexEX + 60, 6),
+      status: p63.substr(indexEX + 66, 2),
+      crc32: p63.substr(indexEX + 68, 8),
+    };
+    return tokenEX;
   }
   /**
    * @function trasmissionDateAndTime
@@ -320,11 +381,32 @@ export class Director {
       rsa: message.rsa,
       rsa_name: message.rsa_name,
     };
+    let tokenQ1: Token_Q1 = {
+      id_authMode: "0",
+      id_validMode: "2",
+    };
+    let tokenQ2: Token_Q2 = {
+      id_authMode: "03",
+    };
+    let tokenC4: Token_C4 = {
+      ind_terminal: "0",
+      term_oper_ind: "0",
+      loc_terminal: "0",
+      ind_tarjeth: "0",
+      ind_tarjet: "0",
+      ind_cap_tarjet: "0",
+      ind_status: "0",
+      level_security: "0",
+      routing_ind: "0",
+      act_terminal: "0",
+      ind_cap_datos: "5",
+      met_ind_tarjet: "2",
+    };
     let headerToken = "& 05",
       tokensData = "",
-      q1 = "FUNCION_DETERMINADA_PARA_CADA_TOKEN_01",
-      q2 = "FUNCION_DETERMINADA_PARA_CADA_TOKEN__02",
-      c4 = "FUNCION_DETERMINADA_PARA_CADA_TOKEN___03",
+      q1 = this.tokenQ1(tokenQ1),
+      q2 = this.tokenQ2(tokenQ2),
+      c4 = this.tokenC4(tokenC4),
       es = this.tokenES(tokenEs),
       ew = this.tokenEW(tokenEw);
     tokensData = tokensData.concat(
@@ -347,7 +429,7 @@ export class Director {
       bines_caja: message.cardInformation.bin,
       bines_pinpad: "",
       bines_version: "00", // No hay pinpad cargago -> 00, sino [00, FF]
-      llave: "1",
+      llave: "0", // para transaccion normal no es necesario inicio de llaves
     };
     let headerToken = "& 01",
       tokensData = "",
@@ -376,7 +458,7 @@ export class Director {
       campo01 = campos.version.padStart(20, "?"),
       campo02 = campos.n_serie.padStart(20, "?"),
       campo03 = "5",
-      campo04 = campos.bines_caja.padStart(8, "?"),
+      campo04 = campos.bines_caja.padStart(8),
       campo05 = campos.bines_pinpad.padStart(8, "0"),
       campo06 = campos.bines_version,
       campo07 = campos.llave;
@@ -401,17 +483,52 @@ export class Director {
    * @param {Token_EW} campos
    * @returns {string} TOKEN EW
    */
-  private tokenEW(campos: Token_EW) {
+  private tokenEW(campos: Token_EW): string {
     let ewData = "",
       campo01 = campos.rsa,
       campo02 = campos.check_value,
       campo03 = campos.rsa_name,
-      campo04 = "01",
+      campo04 = "01", // en un futuro desde terminal se agregara un campo que sea "padding" que hace referencia a este campo
       campo05 = campos.crc32;
     ewData = ewData.concat(campo01, campo02, campo03, campo04, campo05);
     return ewData;
   }
-
+  /**
+   * 1: Identificador del modo de autorización
+   * 2: Identificador del modo de validación del criptograma
+   * @param {Token_Q1} campos
+   * @returns {string}
+   */
+  private tokenQ1(campos: Token_Q1): string {
+    let q1Data = "",
+      campo01 = campos.id_authMode,
+      campo02 = campos.id_validMode;
+    q1Data = q1Data.concat(campo01, campo02);
+    return q1Data;
+  }
+  private tokenQ2(campos: Token_Q2): string {
+    let q2Data = "",
+      campo01 = campos.id_authMode;
+    q2Data = q2Data.concat(campo01);
+    return q2Data;
+  }
+  private tokenC4(campos: Token_C4): string {
+    let c4Data = "",
+      campo01 = campos.ind_terminal,
+      campo02 = campos.term_oper_ind,
+      campo03 = campos.loc_terminal,
+      campo04 = campos.ind_tarjeth,
+      campo05 = campos.ind_tarjet,
+      campo06 = campos.ind_cap_tarjet,
+      campo07 = campos.ind_status,
+      campo08 = campos.level_security,
+      campo09 = campos.routing_ind,
+      campo10 = campos.act_terminal,
+      campo11 = campos.ind_cap_datos,
+      campo12 = campos.met_ind_tarjet;
+    c4Data = c4Data.concat(campo01, campo02);
+    return c4Data;
+  }
   /**
    * P-22 Point of Service Entry Mode
    * magnetic_stripe ---> 901

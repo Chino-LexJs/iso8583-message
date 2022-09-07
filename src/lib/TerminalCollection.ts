@@ -1,4 +1,8 @@
-import { Request_Payment_Response, Terminal_Response } from "./messageTypes";
+import {
+  InitKeys_Response,
+  Request_Payment_Response,
+  Terminal_Response,
+} from "./messageTypes";
 
 class TerminalCollection {
   /**
@@ -39,7 +43,7 @@ class TerminalCollection {
 
   public sendMessageConnection(
     id_request: number,
-    message: Request_Payment_Response
+    message: Request_Payment_Response | InitKeys_Response
   ) {
     let client = this.terminalCollections.get(id_request);
     console.log();

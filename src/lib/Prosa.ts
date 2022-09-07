@@ -74,16 +74,33 @@ export class Prosa {
         console.log("Mensaje de Prosa: ", message);
         let message0210 = new MessageProsa(message);
         let director = new Director(message0210.getBuilder());
+        console.log("\nBuilder from Prosa:");
         console.log(director);
-        console.log("\n\n");
-        let resTerminal = director.getRes0210();
-        console.log("resTerminal:");
-        console.log(resTerminal);
-        let terminalConnections = TerminalCollection.getInstance();
-        terminalConnections.sendMessageConnection(
-          Number(resTerminal.trace_id),
-          resTerminal
-        );
+        let p63 = director.getBuilder().getP63();
+        if (p63 && p63.indexOf("! EX") != -1) {
+          console.log(
+            "\n\nHAY UN TOKEN EX ESTAMOS ACABADOS!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"
+          );
+          console.log("\n\n");
+          let resTerminal = director.getRes0210_initKeys();
+          console.log("resTerminal:");
+          console.log(resTerminal);
+          let terminalConnections = TerminalCollection.getInstance();
+          terminalConnections.sendMessageConnection(
+            Number(resTerminal.trace_id),
+            resTerminal
+          );
+        } else {
+          console.log("\n\n");
+          let resTerminal = director.getRes0210();
+          console.log("resTerminal:");
+          console.log(resTerminal);
+          let terminalConnections = TerminalCollection.getInstance();
+          terminalConnections.sendMessageConnection(
+            Number(resTerminal.trace_id),
+            resTerminal
+          );
+        }
         break;
       case "0430":
         // this.message0430(message);
