@@ -2,7 +2,6 @@ import {
   Execute_Payment_Response,
   InitKeys_Response,
   Request_Payment_Response,
-  Terminal_Response,
 } from "./messageTypes";
 
 class TerminalCollection {

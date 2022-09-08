@@ -97,7 +97,7 @@ export class Prosa {
           console.log(resTerminal);
           let terminalConnections = TerminalCollection.getInstance();
           terminalConnections.sendMessageConnection(
-            Number(resTerminal.trace_id),
+            Number(resTerminal.ticket),
             resTerminal
           );
         }

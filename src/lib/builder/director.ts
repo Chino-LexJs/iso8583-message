@@ -3,19 +3,27 @@ import { getTransaction_keys } from "../../db/transaction_keys.controller";
 import { tansaction_keys } from "../../db/types";
 import { array_to_hexa } from "../../util/array_to_hexa";
 import {
+  trasmissionDateAndTime,
+  localTransactionTime,
+  localTransactionDate,
+  captureDate,
+} from "../../util/dateTime_utils";
+import {
   Execute_Payment,
   Execute_Payment_Response,
   InitKeys_Response,
   Request_Payment,
   Request_Payment_Response,
-  Token_C4,
+} from "../messageTypes";
+import {
+  Token_EX,
   Token_ES,
   Token_EW,
-  Token_EX,
-  Token_EZ,
   Token_Q1,
   Token_Q2,
-} from "../messageTypes";
+  Token_C4,
+  Token_EZ,
+} from "../tokensTypes";
 import { Builder } from "./builder";
 
 export class Director {
@@ -50,20 +58,11 @@ export class Director {
     let terminal = await getTerminal(id_terminal);
     console.log("\n\nTerminal de bd");
     console.log(terminal);
-    if (terminal != undefined) {
-      // buscar transaction_keys de terminal
-      console.log("Encontre terminal supuestament");
-    }
     let transaction_keys: tansaction_keys = await getTransaction_keys(
       id_terminal
     );
     console.log("\nTransaction_key de bd");
     console.log(transaction_keys);
-    if (transaction_keys != undefined) {
-      // buscar transaction_keys de terminal
-      console.log("Encontre transaction_keys supuestament");
-    }
-    // rellenar datos workkey con datos de transaqctio_keys
     let res: Request_Payment_Response = {
       servertime: new Date().toString(),
       rc: id_request ? -1 : 0,
@@ -80,13 +79,14 @@ export class Director {
   }
   public getRes0210(): Execute_Payment_Response {
     let res: Execute_Payment_Response = {
-      request_id: Number(this.builder.getP37()), // retrieval reference number
-      request_date: this.builder.getP13(), // local transaction date
-      request_status: this.builder.getP39() == "00" ? true : false, // response code
-      description: this.builder.getP39() == "00" ? "APROBADA" : "DESAPROBADA",
-      id: this.builder.getP32().slice(2), // Acquiring Intitution ID Code
-      trace_id: Number(this.builder.getP11()), // system trace audit number
+      id: Number(this.builder.getP37()), // retrieval reference number
+      timestamp: new Date().toDateString(),
+      rc: this.builder.getP39() == "00" ? 0 : 1, // response code
+      rcdatetime: this.builder.getP13(), // local transaction date
+      rcmessage: this.builder.getP39() == "00" ? "APROBADA" : "DESAPROBADA", // cambiar a posibles respestas
+      ticket: Number(this.builder.getP11()), // system trace audit number
       authorization: this.builder.getP38(), // Authorization ID Response
+      keys_expired: false,
     };
     return res;
   }
@@ -158,11 +158,11 @@ export class Director {
       .setP1("000000001000018C")
       .setP3("000000")
       .setP4("0".padStart(12, "0"))
-      .setP7(this.trasmissionDateAndTime())
+      .setP7(trasmissionDateAndTime())
       .setP11(id_request.toString().padStart(6, "0"))
-      .setP12(this.localTransactionTime())
-      .setP13(this.localTransactionDate())
-      .setP17(this.captureDate())
+      .setP12(localTransactionTime())
+      .setP13(localTransactionDate())
+      .setP17(captureDate())
       .setP18("5399") // @todo Merchart Type otorga PROSA
       .setP22(this.entryMode(""))
       .setP25("00")
@@ -232,11 +232,11 @@ export class Director {
       .setP1("000000001000018C") // DEBE SER AUTOGENERADO
       .setP3("000000")
       .setP4(request.amount.toString().replace(/./g, "").padStart(12, "0"))
-      .setP7(this.trasmissionDateAndTime())
+      .setP7(trasmissionDateAndTime())
       .setP11(id_request.toString().padStart(6, "0"))
-      .setP12(this.localTransactionTime())
-      .setP13(this.localTransactionDate())
-      .setP17(this.captureDate())
+      .setP12(localTransactionTime())
+      .setP13(localTransactionDate())
+      .setP17(captureDate())
       .setP18("5399") // @todo Merchart Type otorga PROSA
       .setP22(this.entryMode(request.entry_mode))
       .setP25("00")
@@ -318,69 +318,7 @@ export class Director {
     };
     return tokenEX;
   }
-  /**
-   * @function trasmissionDateAndTime
-   * @funcdesc Data element P-7 fecha y hora del servidor en formato: MMDDhhmmss
-   * @returns {string} P-7
-   */
-  private trasmissionDateAndTime(): string {
-    let p7 = "";
-    let date = new Date();
-    let arrayDate: string[] = [];
-    arrayDate.push((date.getMonth() + 1).toString());
-    arrayDate.push(date.getDate().toString());
-    arrayDate.push(date.getHours().toString());
-    arrayDate.push(date.getMinutes().toString());
-    arrayDate.push(date.getSeconds().toString());
-    for (let i = 0; i < arrayDate.length; i++) {
-      p7 = p7.concat(arrayDate[i].padStart(2, "0"));
-    }
-    return p7;
-  }
-  /**
-   * @function localTransactionTime
-   * @funcdesc Data element P-12 hora de la terminal en formato: HHMMSS
-   * @returns {string} P-12
-   */
-  private localTransactionTime(): string {
-    let p12 = "";
-    let terminalDateTime = new Date();
-    p12 = p12.concat(
-      terminalDateTime.getHours().toString().padStart(2, "0"),
-      terminalDateTime.getMinutes().toString().padStart(2, "0"),
-      terminalDateTime.getSeconds().toString().padStart(2, "0")
-    );
-    return p12;
-  }
-  /**
-   * @function localTransactionDate
-   * @funcdesc Data element P-13 fecha de la terminal en formato: MMDD
-   * @param {string} terminalDate
-   * @returns {string} P-13
-   */
-  private localTransactionDate(): string {
-    let p13 = "";
-    let terminalDateTime = new Date();
-    p13 = p13.concat(
-      (terminalDateTime.getMonth() + 1).toString().padStart(2, "0"),
-      terminalDateTime.getDate().toString().padStart(2, "0")
-    );
-    return p13;
-  }
-  /**
-   * @function captureDate
-   * @funcdesc Data element P-17 decha de la terminal en formato: MMDD
-   * @returns {string} P-17
-   */
-  private captureDate(): string {
-    let p17 = "";
-    let date = new Date();
-    p17 = p17.concat(
-      (date.getMonth() + 1).toString().padStart(2, "0"),
-      date.getDate().toString().padStart(2, "0")
-    );
-    return p17;
-  }
+
   /**
    * @function tokens_initKeys
    * @funcdesc Tokens usados: Q1, Q2, C4, ES y EW
@@ -459,9 +397,9 @@ export class Director {
       llave: "0", // para transaccion normal no es necesario inicio de llaves
     };
     let tokenEz: Token_EZ = {
-      serial_key: message.cardInformation.serial_key,
-      counter: message.cardInformation.counter,
-      failed_counter: message.cardInformation.failed_counter,
+      serial_key: message.device.ksn,
+      counter: message.device.realcounter,
+      failed_counter: message.device.failcounter,
       track2_flag: "1",
       read_mode: "05",
       track2_length: message.cardInformation.track2_length,
@@ -498,8 +436,8 @@ export class Director {
    */
   private tokenES(campos: Token_ES): string {
     let esData = "",
-      campo01 = campos.version.padStart(20, "?"),
-      campo02 = campos.n_serie.padStart(20, "?"),
+      campo01 = campos.version.padStart(20, "0"),
+      campo02 = campos.n_serie.padStart(20, "0"),
       campo03 = "5",
       campo04 = campos.bines_caja.padStart(8),
       campo05 = campos.bines_pinpad.padStart(8, "0"),
