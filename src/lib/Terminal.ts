@@ -1,15 +1,8 @@
-import { Request } from "express";
-import { saveFolio } from "../db/folio.controllers";
-import { saveRequest } from "../db/request.controllers";
-import { folio, message_request, message_request_initKeys } from "../db/types";
+import { getRequestById, saveRequest } from "../db/request.controllers";
+import { message_request } from "../db/types";
 import { Director } from "./builder/director";
 import { iso8583 } from "./builder/iso8583";
-import {
-  message_db,
-  Request_Payment,
-  Terminal_InitKeys,
-  Terminal_Request,
-} from "./messageTypes";
+import { Execute_Payment, Request_Payment } from "./messageTypes";
 import { Prosa } from "./Prosa";
 import { TerminalCollection } from "./TerminalCollection";
 const JsonSocket = require("json-socket");
@@ -48,42 +41,35 @@ class Terminal {
 
       // Diferenciar los distintos mensajes que pueden enviar desde terminal
       switch (message.type.toString().toLowerCase()) {
-        case "init": {
-          let initKeyMessage: Terminal_InitKeys = message;
-          let folio: folio = {
-            date_folio: new Date(),
-            id_terminal: initKeyMessage.device.serial,
-            monto_folio: 0,
-          };
-          let id_folio = await saveFolio(folio);
-          let request: message_request_initKeys = {
-            id_folio,
-            mti: "0200",
-            content: initKeyMessage,
-          };
-          let id_request = await saveRequest(request);
+        case "execute": {
+          let executePayment: Execute_Payment = message;
+          console.log("\n\nExecute Payment de Terminal:");
+          console.log(executePayment);
+          let id_request = executePayment.id;
           this.terminals.saveConnection(id_request, this.socket);
-          director.set0200_InitKeys(initKeyMessage, id_request);
-          messageToProsa = director.get0200_InitKeys();
+          let request: message_request = await getRequestById(id_request);
+          console.log("\nrequest de base da datos");
+          console.log(request.content);
+          director.set0200(executePayment, id_request, request.content);
+          messageToProsa = director.get0200();
+          console.log("\nMensaje a Prosa:");
+          console.log(messageToProsa);
+          Prosa.getInstance().getSocket().write(messageToProsa, "utf8");
           break;
         }
         case "request": {
           let requestMessage: Request_Payment = message;
-          let folio: folio = {
-            date_folio: new Date(),
-            id_terminal: requestMessage.device.serial,
-            monto_folio: requestMessage.amount,
-          };
-          let id_folio = await saveFolio(folio);
           let request: message_request = {
-            id_folio,
             mti: "0200",
             content: requestMessage,
           };
           let id_request = await saveRequest(request);
-          this.terminals.saveConnection(id_request, this.socket);
-          director.set0200(requestMessage, id_request);
-          messageToProsa = director.get0200();
+          let res = await director.getRequestResponse(
+            requestMessage,
+            id_request
+          );
+          console.log("\n\nRequest response to terminal: ", res);
+          this.socket.sendMessage(res);
           break;
         }
         default:
@@ -91,10 +77,6 @@ class Terminal {
           this.socket.end();
           break;
       }
-
-      console.log("\nMensaje a Prosa:");
-      console.log(messageToProsa);
-      Prosa.getInstance().getSocket().write(messageToProsa, "utf8");
     });
     this.socket.on("close", () => {
       this.terminals.closeConnection(this.socket);

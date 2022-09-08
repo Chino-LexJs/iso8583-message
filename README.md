@@ -21,7 +21,7 @@ _Primero correr servidor PROSA_
 
 ```shell
 
-node .\src\prosa-test.js
+ts-node ./src/prosa-test.ts
 ```
 
 _Luego correr servidor (comando para desarrollo)_
@@ -38,17 +38,26 @@ _Simular mensajes hacia Servidor desde un cliente (Terminal)_
 node .\src\client-test.js
 ```
 
+_Comandos DOCKER_
+
+```shell
+// Para levantar la imagne de docker
+docker-compose up
+
+// Para eliminar la imagen de docker
+docker-compose down
+```
+
 ## Construido con 🛠️
 
 _Herramientas usadas en el proyecto:_
 
-* NodeJs
-* JavaScript
-* TypeScript
-* Nodemon
-* Sockets
+- NodeJs
+- JavaScript
+- TypeScript
+- Nodemon
+- Sockets
 
 ## Wiki 📖
 
 Puedes encontrar mucho más de cómo se usa el protocolo ISO-8583 este proyecto en [Wiki](https://es.wikipedia.org/wiki/ISO_8583)
-

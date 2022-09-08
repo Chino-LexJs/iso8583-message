@@ -4,13 +4,7 @@
 
 import { Director } from "./lib/builder/director";
 import { MessageProsa } from "./lib/messageProsa";
-import {
-  Terminal_InitKeys,
-  Token_C4,
-  Token_EX,
-  Token_Q1,
-  Token_Q2,
-} from "./lib/messageTypes";
+import { Token_C4, Token_EX, Token_Q1, Token_Q2 } from "./lib/messageTypes";
 
 const Socket = require("net").Socket,
   { Server } = require("net");

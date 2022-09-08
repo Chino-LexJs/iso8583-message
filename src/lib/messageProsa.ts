@@ -19,7 +19,7 @@ export class MessageProsa {
     let unpack: Builder = new iso8583();
     let dataElementsFields: number[] = this.usedFields(message);
     let init = 0; // indice donde empiezan los data elements en el message
-    let allFields: string = message.slice(32);
+    let allFields: string = message.slice(32); // desde el indice 32 de la trama hasta el final estan los data elements
     dataElementsFields.forEach((fiedlNumber) => {
       let field = this.dataElements.find((item) => item.campo == fiedlNumber);
       if (field != undefined) {

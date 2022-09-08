@@ -1,7 +1,7 @@
 /**
  * Servidor Cliente de prueba para simular la comunicacion con Terminales POSNETS
  */
-
+require("colors");
 var net = require("net");
 var JsonSocket = require("json-socket");
 var port_PIDEAKY = 3000;
@@ -70,25 +70,6 @@ let init_keys = {
   rsa_name: "A000BZPY72",
 };
 
-let executePayment = {
-  authentication: "pin",
-  cardInformation: {
-    bin: "425982",
-    cvv_length: 0,
-    cvv_present: false,
-    emv_tags:
-      "9F2701809F26088AD7DDD181D667D29F3704F100D6A39F360200759C0100820239009F3303E0B8C89F34034403029A032101145F2A0204849F02060000000010009F03060000000000009F3501225F3401019F10120310A74005020000000000000000000000FF8407A00000000410109F090200029F1A020484950500000080009F1E0830303030303930359F6E009F0607A00000000410109F3901055A08520416567447099657105204165674470996D2505201000002269F21031603569F6C005F201a50455246494C455320415A554C2F5052472020202020202020205F24032505318F01069F5D009F4104000000509F53009F7C004F07A000000004101050104465626974204D6173746572636172649B02E8008E1400000000000000004201440341031E0342031F03",
-    failed_counter: 0,
-    cardholder: "NOMBRE DEL TARJETAHABIENTE ",
-    last4: "1111",
-    counter: 8,
-    serial_key: "00000045467101200008",
-    track2: "DDD0BD616C1DCA0B24DD0D71FF10A78D680BABD638037F3F",
-    track2_crc: "BF4B379D",
-    track2_length: 32,
-  },
-};
-
 // JSON tomado de ejemplo de manual StramPay para Check-in src/lib/messageTypes
 let checkin = {
   amount: 1,
@@ -117,9 +98,11 @@ let checkin = {
   reference: "20201204190823",
 };
 
-let newRequest = {
+let newRequestPayment = {
+  type: "request",
+  entry_mode: "magnetic_stripe",
   device: {
-    serialnr: "PB04204560977",
+    serialnr: "PB04204S60977",
     version: "100",
     counter: 1,
   },
@@ -132,7 +115,25 @@ let newRequest = {
   localtime: "2022-04-22 14:13:00",
   amount: "100.00",
 };
-
+let executePayment = {
+  type: "execute",
+  authentication: "pin",
+  cardInformation: {
+    bin: "425982",
+    cvv_length: 0,
+    cvv_present: false,
+    emv_tags:
+      "9F2701809F26088AD7DDD181D667D29F3704F100D6A39F360200759C0100820239009F3303E0B8C89F34034403029A032101145F2A0204849F02060000000010009F03060000000000009F3501225F3401019F10120310A74005020000000000000000000000FF8407A00000000410109F090200029F1A020484950500000080009F1E0830303030303930359F6E009F0607A00000000410109F3901055A08520416567447099657105204165674470996D2505201000002269F21031603569F6C005F201a50455246494C455320415A554C2F5052472020202020202020205F24032505318F01069F5D009F4104000000509F53009F7C004F07A000000004101050104465626974204D6173746572636172649B02E8008E1400000000000000004201440341031E0342031F03",
+    failed_counter: 0,
+    cardholder: "NOMBRE DEL TARJETAHABIENTE ",
+    last4: "1111",
+    counter: 8,
+    serial_key: "00000045467101200008",
+    track2: "DDD0BD616C1DCA0B24DD0D71FF10A78D680BABD638037F3F",
+    track2_crc: "BF4B379D",
+    track2_length: 32,
+  },
+};
 function connect() {
   console.log(`Servidor en puerto: ${port_PIDEAKY} de host: ${host}`);
   socket.removeAllListeners("error");
@@ -155,35 +156,48 @@ jsonSocket.on("message", (data) => {
 
 console.log(
   "\nSeleccionar opcion para enviar mensaje a Pideaky: \n\n",
-  "Venta con banda magnetica ".padEnd(50, ". "),
+  "Request Payment ".padEnd(50, ". "),
   "(1)\n",
-  "Inicializacion de llaves ".padEnd(50, ". "),
+  "Execute Payment ".padEnd(50, ". "),
   "(2)\n",
   "Check-in ".padEnd(50, ". "),
   "(3)\n"
 );
 
-// Config para interactuar con consola
-process.stdin.resume();
-process.stdin.setEncoding("utf8");
-const stdin = process.openStdin();
+const readline = require("readline").createInterface({
+  input: process.stdin,
+  output: process.stdout,
+});
 
-stdin.addListener("data", (data) => {
-  let rta = data.toString();
-  console.log("Su respuesta fue: " + rta);
+readline.question("\nSeleccione una opcion: ", (op) => {
+  console.log("\nSu opcion fue: ", op);
+  readline.close();
+  eleccionMenu(op);
+});
 
-  switch (rta[0]) {
+function eleccionMenu(op) {
+  switch (op) {
     case "1":
-      console.log("Enviando mensaje de tipo venta con vanda magnetica \n");
+      console.log("Ejecutar Request Payment \n");
       jsonSocket.connect(port_PIDEAKY, host, () => {
-        jsonSocket.sendMessage(requestPayment);
+        jsonSocket.sendMessage(newRequestPayment);
       });
       break;
     case "2":
-      console.log("Enviando mensaje de tipo Inicializacion de llaves \n");
-      jsonSocket.connect(port_PIDEAKY, host, () => {
-        jsonSocket.sendMessage(init_keys);
+      console.log("\n\n\tExecute Payment \n".green);
+      const rd = require("readline").createInterface({
+        input: process.stdin,
+        output: process.stdout,
       });
+      rd.question("\nIngrese ID de request: ", (op2) => {
+        rd.close();
+        console.log("\nID_REQUEST: ", op2);
+        executePayment.id = Number(op2);
+        jsonSocket.connect(port_PIDEAKY, host, () => {
+          jsonSocket.sendMessage(executePayment);
+        });
+      });
+
       break;
     case "3":
       console.log("Enviando mensaje de tipo Check-in \n");
@@ -195,4 +209,4 @@ stdin.addListener("data", (data) => {
       console.log("ERROR: Respuesta no soportada por la simulacion");
       process.exit();
   }
-});
+}

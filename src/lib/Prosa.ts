@@ -1,5 +1,6 @@
 import { Director } from "./builder/director";
 import { MessageProsa } from "./messageProsa";
+import { Execute_Payment_Response } from "./messageTypes";
 import { TerminalCollection } from "./TerminalCollection";
 
 const { Socket } = require("net");
@@ -78,9 +79,7 @@ export class Prosa {
         console.log(director);
         let p63 = director.getBuilder().getP63();
         if (p63 && p63.indexOf("! EX") != -1) {
-          console.log(
-            "\n\nHAY UN TOKEN EX ESTAMOS ACABADOS!!!!!!!!!!!!!!!!!!!!!!!!!!!\n\n"
-          );
+          // Respuesta 0210 de incio de llaves
           console.log("\n\n");
           let resTerminal = director.getRes0210_initKeys();
           console.log("resTerminal:");
@@ -91,8 +90,9 @@ export class Prosa {
             resTerminal
           );
         } else {
+          // Respuesta 0210 de transaccion normal
           console.log("\n\n");
-          let resTerminal = director.getRes0210();
+          let resTerminal: Execute_Payment_Response = director.getRes0210();
           console.log("resTerminal:");
           console.log(resTerminal);
           let terminalConnections = TerminalCollection.getInstance();

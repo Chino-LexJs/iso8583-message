@@ -1,22 +1,24 @@
 import { pool } from "./db";
-import { message_request, message_request_initKeys } from "./types";
+import { message_request, message_execute_Payment } from "./types";
 
 async function getRequestById(id: number): Promise<any> {
   try {
-    let res: any = await pool.query(`SELECT * FROM request WHERE id = ${id}`);
-    return res[0];
+    let res: any = await pool.query(
+      `SELECT * FROM message_request WHERE request_id = ${id}`
+    );
+    return res[0][0];
   } catch (error) {
     console.log(error);
   }
 }
 async function saveRequest(
-  message: message_request | message_request_initKeys
+  message: message_request | message_execute_Payment
 ): Promise<any> {
   try {
     let content = JSON.stringify(message.content);
     let res: any = await pool.query(
-      "INSERT INTO message_request (id_folio, mti, content) VALUES (?,?,?)",
-      [message.id_folio, message.mti, content]
+      "INSERT INTO message_request (mti, content) VALUES (?,?)",
+      [message.mti, content]
     );
     return res[0].insertId;
   } catch (error) {

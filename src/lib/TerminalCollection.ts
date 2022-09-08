@@ -1,4 +1,5 @@
 import {
+  Execute_Payment_Response,
   InitKeys_Response,
   Request_Payment_Response,
   Terminal_Response,
@@ -43,7 +44,10 @@ class TerminalCollection {
 
   public sendMessageConnection(
     id_request: number,
-    message: Request_Payment_Response | InitKeys_Response
+    message:
+      | Request_Payment_Response
+      | InitKeys_Response
+      | Execute_Payment_Response
   ) {
     let client = this.terminalCollections.get(id_request);
     console.log();

@@ -1,32 +1,82 @@
-interface Terminal_InitKeys {
-  type: string; // CAMPO PARA DIFERENCIAR MSJ DE TERMINAL
-  check_value: string;
-  crc32: string;
-  device: {
-    serial: string;
-    version: string;
+interface Execute_Payment {
+  id: number;
+  type: string;
+  authentication: string;
+  cardInformation: {
+    bin: string;
+    cvv_length: number;
+    cvv_present: boolean;
+    emv_tags: string;
+    failed_counter: number;
+    cardholder: string;
+    last4: string;
+    counter: number;
+    serial_key: string;
+    track2: string;
+    track2_crc: string;
+    track2_length: number;
   };
-  isoType: string;
-  rsa: string;
-  rsa_name: string;
 }
 
-interface Terminal_Request {
-  MTI: string;
-  AMOUNT: string;
-  DATE_TIME: string;
-  ENTRY_MODE: string;
-  CONDITION_CODE: string;
-  TERMINAL_ID: string;
-  check_value: string;
-  crc32: string;
+interface Request_Payment {
+  type: string;
+  entry_mode: string;
   device: {
-    serial: string;
+    serialnr: string;
     version: string;
+    counter: number;
   };
-  isoType: string;
-  rsa: string;
-  rsa_name: string;
+  key: {
+    check_value: string;
+    crc32: string;
+    name: string;
+    rsa: string;
+  };
+  localtime: string;
+  amount: string;
+}
+
+// NOTA: rc==-1: Continue to EXECUTE  rc>0: Reserve failed
+interface Request_Payment_Response {
+  servertime: string;
+  rc: number;
+  rcmessage: string;
+  id: number;
+  workkey: {
+    ksn: string;
+    key: string;
+    crc32: string;
+    check_value: string;
+  };
+}
+
+interface Execute_Payment_Response {
+  request_id: number;
+  request_date: string;
+  request_status: boolean;
+  id: string; // Acquiring Intitution ID Code
+  trace_id: number;
+  authorization: string;
+  description: string; // APROBADA | DESARPOBADA
+}
+// ejemplo de respuesta a terminal por venta con banda magnetica de StramPay
+interface Execute_Payment_ResponseStramPay {
+  request_id: "5f79a4a6-6a7d-4c0f-bc9f-6af4d752107b";
+  request_date: "2020-12-04 18:26:06";
+  request_status: true;
+  http_code: 0;
+  id: "607127958470";
+  trace_id: "009182";
+  authorization: "001541";
+  renew_key: false;
+  description: "APROBADA";
+  binInformation: {
+    bin: "425982";
+    bank: "IXE";
+    product: "CREDITO VISA CLASICA ";
+    type: "CREDITO";
+    brand: "VISA";
+  };
 }
 
 interface Terminal_Response {
@@ -39,51 +89,6 @@ interface Terminal_Response {
   RETRIEVAL_REFERENCE_NUMBER: string;
   AUTHORIZATION_ID_RESPONSE: string;
   RESPONSE_CODE: string;
-}
-
-interface Request_Payment {
-  type: string; // CAMPO PARA DIFERENCIAR MSJ DE TERMINAL
-  amount: number;
-  authentication: string;
-  cardInformation: {
-    bin: string;
-    cvv_length: number;
-    cvv_present: boolean;
-    failed_counter: number;
-    holder_name: string;
-    last4: string;
-    real_counter: number;
-    serial_key: string;
-    track2: string;
-    track2_crc32: string;
-    track2_length: number;
-  };
-  device: {
-    serial: string;
-    version: string;
-  };
-  entry_mode: string;
-  isoType: string;
-  reference: string;
-}
-
-interface Request_Payment_Response {
-  request_id: string;
-  request_date: string;
-  request_status: boolean;
-  http_code: number;
-  id: string;
-  trace_id: string;
-  authorization: string;
-  renew_key: boolean;
-  description: string;
-  binInformation: {
-    bin: string;
-    bank: string;
-    product: string;
-    type: string;
-    brand: string;
-  };
 }
 
 interface InitKeys_Response {
@@ -108,6 +113,21 @@ interface Token_ES {
   bines_pinpad: string; // bd
   bines_version: string; // bd
   llave: string; // server
+}
+
+interface Token_EZ {
+  serial_key: string;
+  counter: number;
+  failed_counter: number;
+  track2_flag: string;
+  read_mode: string;
+  track2_length: number;
+  cvv_flag: string;
+  cvv_length: number;
+  track_flag: string;
+  track2: string;
+  last4: string;
+  crc32: string;
 }
 
 interface Token_EX {
@@ -165,18 +185,19 @@ interface message_db {
 }
 
 export {
-  Terminal_InitKeys,
-  Terminal_Request,
+  Request_Payment,
+  Request_Payment_Response,
+  Execute_Payment,
+  Execute_Payment_Response,
   Terminal_Response,
   Token_ES,
+  Token_EZ,
   Token_EX,
   Token_EW,
   Token_Q1,
   Token_Q2,
   Token_C4,
   Data_Element,
-  Request_Payment,
-  Request_Payment_Response,
   InitKeys_Response,
   message_db,
 };
