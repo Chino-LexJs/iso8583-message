@@ -50,9 +50,8 @@ class TerminalCollection {
   ) {
     let client = this.terminalCollections.get(id_request);
     console.log();
-    client.sendMessage(message);
+    client.send(message);
     this.terminalCollections.delete(id_request);
-    client.end();
   }
 }
 

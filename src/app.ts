@@ -1,4 +1,4 @@
-import { main, server } from "./server";
+import { main, serverHTTP } from "./server";
 
 const { SERVER_PORT } = process.env;
 
@@ -15,7 +15,7 @@ const port: number = Number(SERVER_PORT) || 3000,
 /**
  * Inicia el servidor
  */
-server.listen({ port, host }, async () => {
-  console.log(`Server APP on port: ${server.address().port}`);
+serverHTTP.listen({ port, host }, async () => {
+  console.log(`Server APP on port: ${serverHTTP.address().port}`);
   main();
 });
