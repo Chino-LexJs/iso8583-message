@@ -1,15 +1,17 @@
 import { getRequestById, saveRequest } from "../db/request.controllers";
 import { message_request } from "../db/types";
-import { Director } from "./builder/director";
+
+import { TerminalCollection } from "./TerminalCollection";
+import { Prosa } from "./Prosa";
+
+import { DirectorTerminal } from "./builder/directorTerminal";
 import { iso8583 } from "./builder/iso8583";
+
 import {
   Execute_Payment,
   Request_Payment,
   Request_Payment_Response,
 } from "./messageTypes";
-import { Prosa } from "./Prosa";
-import { TerminalCollection } from "./TerminalCollection";
-const JsonSocket = require("json-socket");
 
 class Terminal {
   /**
@@ -29,6 +31,8 @@ class Terminal {
   private socketProsa: any;
 
   private terminals = TerminalCollection.getInstance();
+
+  private static terminalsCollections = TerminalCollection.getInstance();
 
   constructor(socket: any) {
     this.socket = socket;
@@ -56,7 +60,7 @@ class Terminal {
   ): Promise<Request_Payment_Response> {
     // manejador de mensajes de terminal
     let unpack: iso8583 = new iso8583();
-    let director: Director = new Director(unpack);
+    let director: DirectorTerminal = new DirectorTerminal(unpack);
 
     let requestMessage: Request_Payment = message;
     let request: message_request = {
@@ -72,7 +76,7 @@ class Terminal {
     let messageToProsa: string = "";
     // manejador de mensajes de terminal
     let unpack: iso8583 = new iso8583();
-    let director: Director = new Director(unpack);
+    let director: DirectorTerminal = new DirectorTerminal(unpack);
 
     let executePayment: Execute_Payment = message;
     console.log("\n\nExecute Payment de Terminal:");
@@ -93,6 +97,9 @@ class Terminal {
   }
   public getSocketProsa(): any {
     return this.socketProsa;
+  }
+  public static getTerminals(): TerminalCollection {
+    return this.terminalsCollections;
   }
 }
 

@@ -1,7 +1,7 @@
-import { Director } from "./builder/director";
 import { MessageProsa } from "./messageProsa";
+import { Terminal } from "./Terminal";
+import { DirectorProsa } from "./builder/directorProsa";
 import { Execute_Payment_Response } from "./messageTypes";
-import { TerminalCollection } from "./TerminalCollection";
 
 const { Socket } = require("net");
 const to_prosa = {
@@ -74,7 +74,7 @@ export class Prosa {
       case "0210":
         console.log("Mensaje de Prosa: ", message);
         let message0210 = new MessageProsa(message);
-        let director = new Director(message0210.getBuilder());
+        let director = new DirectorProsa(message0210.getBuilder());
         console.log("\nBuilder from Prosa:");
         console.log(director);
         let p63 = director.getBuilder().getP63();
@@ -84,7 +84,7 @@ export class Prosa {
           let resTerminal = director.getRes0210_initKeys();
           console.log("resTerminal:");
           console.log(resTerminal);
-          let terminalConnections = TerminalCollection.getInstance();
+          let terminalConnections = Terminal.getTerminals();
           terminalConnections.sendMessageConnection(
             Number(resTerminal.trace_id),
             resTerminal
@@ -95,7 +95,7 @@ export class Prosa {
           let resTerminal: Execute_Payment_Response = director.getRes0210();
           console.log("resTerminal:");
           console.log(resTerminal);
-          let terminalConnections = TerminalCollection.getInstance();
+          let terminalConnections = Terminal.getTerminals();
           terminalConnections.sendMessageConnection(
             Number(resTerminal.ticket),
             resTerminal

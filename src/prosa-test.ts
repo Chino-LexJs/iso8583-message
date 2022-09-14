@@ -3,6 +3,7 @@
  */
 
 import { Director } from "./lib/builder/director";
+import { DirectorTerminal } from "./lib/builder/directorTerminal";
 import { MessageProsa } from "./lib/messageProsa";
 import { Token_C4, Token_EX, Token_Q1, Token_Q2 } from "./lib/tokensTypes";
 
@@ -26,7 +27,7 @@ server.on("connection", (socket: any) => {
     "data",
     (message: string) => {
       let msg = new MessageProsa(message);
-      let director = new Director(msg.getBuilder());
+      let director = new DirectorTerminal(msg.getBuilder());
       let resTerminal = director.get0200();
       let referenceNumber = director.getBuilder().getP37();
       let msgToPideaky = new MessageProsa(message0210);

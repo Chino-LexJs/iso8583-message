@@ -1,4 +1,5 @@
-import { main, serverHTTP } from "./server";
+import { main } from "./main";
+import { serverHTTP } from "./server";
 
 const { SERVER_PORT } = process.env;
 

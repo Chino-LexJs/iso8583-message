@@ -1,7 +1,8 @@
+import { Prosa } from "../lib/Prosa";
 /**
- * Instance de Movistar (Singleton)
- let movistar = Movistar.getInstance();
+ * Instance de Prosa (Singleton)
  */
+let prosa = Prosa.getInstance();
 
 async function loopReverses() {
   // let reverses = await getReverses(); // mensajes reversos con isomessage430_id IS NULL [{reverse1}, {reverse2}...]
@@ -28,4 +29,4 @@ async function loopEcho() {
   movistar.getSocket().write(mti0800.getMessage(), "utf8"); */
 }
 
-export { loopEcho, loopReverses };
+export { loopEcho, loopReverses, prosa };

@@ -1,11 +1,11 @@
-import express from "express";
+import { Terminal } from "../lib/Terminal";
+
 import {
   Execute_Payment,
-  Execute_Payment_Response,
   Request_Payment,
   Request_Payment_Response,
 } from "../lib/messageTypes";
-import { Terminal } from "../lib/Terminal";
+import express from "express";
 const router = express.Router();
 
 // requestPayment
