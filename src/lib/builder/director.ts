@@ -115,17 +115,17 @@ export class Director {
       .setP18("5399") // @todo Merchart Type otorga PROSA
       .setP22(this.entryMode(""))
       .setP25("00")
-      .setP32("11???????????") // @todo Acquiring Institution ID Code otorga PROSA se recupera de la DB
+      .setP32("1100000000000") // @todo Acquiring Institution ID Code otorga PROSA se recupera de la DB
       .setP37(id_request.toString().padStart(12, "0")) // id_request 12 digitos
       .setP42(message.device.serial.padStart(15, "0"))
-      .setP43("????????????????????????????????????????") // @todo function buscar en DB información de la terminal (direccion) 40 digitos
-      .setP48("027???????????????????????????") // @todo function buscarn en DB Retailer ID, Group y Region (aclarar con OSCAR)
+      .setP43("0000000000000000000000000000000000000000") // @todo function buscar en DB información de la terminal (direccion) 40 digitos
+      .setP48("027000000000000000000000000000") // @todo function buscarn en DB Retailer ID, Group y Region (aclarar con OSCAR)
       .setP49("484")
-      .setP60("016????????????????") // @todo function procesar en SERVER y buscar en BD Terminal Owner FIID, Logical Network, Time Offset y Pseudo Terminal ID
+      .setP60("0160000000000000000") // @todo function procesar en SERVER y buscar en BD Terminal Owner FIID, Logical Network, Time Offset y Pseudo Terminal ID
       .setP61("0190000000000000000000") // @todo informacion de la tarjeta Category, Save Account Indicator, Interchange Response Code
       .setP63(this.tokens_initKeys(message)) // @todo function con TOKEN ES, TOKEN EZ
       .setS100("010") // @todo function recupera de DB codigo fijo otorgado por PROSA
-      .setS120("029?????????????????????????????") // @todo function buscar en DB datos de la Terminal: Name and Location, Terminal Brach ID
+      .setS120("02900000000000000000000000000000") // @todo function buscar en DB datos de la Terminal: Name and Location, Terminal Brach ID
       .setS121("02000000000000000000000") // @todo function buscar en DB datos varios de Terminal (CRT)
       .setS125("012ADINTR000000") // @todo function procesar datos de Tarjteta (Services|Originador|Destination|Draft Capture Flag)
       .setS126("03800000000000000000000000000000000000000"); // @todo Aclarar con Oscar si todos son ceros
