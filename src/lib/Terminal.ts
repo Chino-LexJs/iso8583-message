@@ -72,16 +72,12 @@ class Terminal {
     console.log("\n\nRequest response to terminal: ", res);
     return res;
   }
-  public async executePayment(message: Execute_Payment) {
+  public async executePayment(executePayment: Execute_Payment) {
     let messageToProsa: string = "";
     // manejador de mensajes de terminal
     let unpack: iso8583 = new iso8583();
     let director: DirectorTerminal = new DirectorTerminal(unpack);
-
-    let executePayment: Execute_Payment = message;
-    console.log("\n\nExecute Payment de Terminal:");
-    console.log(executePayment);
-    let id_request = executePayment.id;
+    let id_request = executePayment.id; // id_request
     this.terminals.saveConnection(id_request, this.socket);
     let request: message_request = await getRequestById(id_request);
     console.log("\nrequest de base da datos");

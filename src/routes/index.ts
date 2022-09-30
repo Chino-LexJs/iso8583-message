@@ -13,7 +13,7 @@ router.post("/requestPayment", async (req, res) => {
   let request_payment: Request_Payment = req.body;
   console.log("/requestPayment\n");
   console.log(req.body);
-  let terminal: Terminal = new Terminal(req.socket);
+  let terminal: Terminal = new Terminal(res);
   let response: Request_Payment_Response = await terminal.requestPayment(
     request_payment
   );
