@@ -1,7 +1,15 @@
+import { getTerminal_RequestById } from "../db/terminal_request.controllers";
+import { tansaction_keys } from "../db/types";
 import { MessageProsa } from "./messageProsa";
-import { Terminal } from "./Terminal";
-import { DirectorProsa } from "./builder/directorProsa";
-import { Execute_Payment_Response } from "./messageTypes";
+import {
+  Execute_Payment_Response,
+  InitKeys_Response,
+  Request_Payment_Response,
+} from "./messageTypes";
+import { TerminalCollection } from "./TerminalCollection";
+import { Token_EX } from "./tokensTypes";
+import { terminal_request } from "../db/types";
+import { saveTransaction_keys } from "../db/transaction_keys.controller";
 
 const { Socket } = require("net");
 const to_prosa = {
@@ -68,38 +76,86 @@ export class Prosa {
    * @desc Recibe msj en formato sio 8583 y determina que manejador usar segun su mti
    * @param {string} message msj de movistar en formato iso8583
    */
-  private onData(message: string) {
+  private async onData(message: string) {
     let mtiMessage = this.getMti(message);
     switch (mtiMessage) {
       case "0210":
         console.log("Mensaje de Prosa: ", message);
         let message0210 = new MessageProsa(message);
-        let director = new DirectorProsa(message0210.getBuilder());
         console.log("\nBuilder from Prosa:");
-        console.log(director);
-        let p63 = director.getBuilder().getP63();
+        console.log(message0210.getUnpack());
+        let p63 = message0210.getUnpack().getP63();
         if (p63 && p63.indexOf("! EX") != -1) {
           // Respuesta 0210 de incio de llaves
-          console.log("\n\n");
-          let resTerminal = director.getRes0210_initKeys();
+          let token_EX: Token_EX = message0210.get_tokenEX();
+          // let res: InitKeys_Response = {
+          //   request_id: message0210.getUnpack().getP37(), // retrieval reference number,
+          //   request_date: message0210.getUnpack().getP13(), // local transaction date,
+          //   request_status:
+          //     message0210.getUnpack().getP39() == "00" ? true : false, // response code,
+          //   http_code: 0,
+          //   trace_id: message0210.getUnpack().getP11(), // system trace audit number
+          //   error_code: message0210.getUnpack().getP32().slice(2), // Acquiring Intitution ID Code,
+          //   description:
+          //     message0210.getUnpack().getP39() == "00"
+          //       ? "APROBADA"
+          //       : "DESAPROBADA",
+          //   authorization: message0210.getUnpack().getP38(),
+          //   ksn: token_EX.ksn,
+          //   key: token_EX.key_cifrada,
+          //   key_crc32: token_EX.crc32,
+          //   key_check_value: token_EX.check_value,
+          // };
+          let terminal_request: terminal_request =
+            await getTerminal_RequestById(
+              Number(message0210.getUnpack().getP37())
+            );
+          let transaction_keys: tansaction_keys = {
+            id_terminal: terminal_request.terminal_id,
+            timestamp: new Date().toDateString(),
+            check_value: token_EX.check_value,
+            crc32: token_EX.crc32,
+            name: terminal_request.request.key.name,
+            rsa: terminal_request.request.key.rsa,
+            ksn: token_EX.ksn,
+            workkey_key: token_EX.key_cifrada,
+          };
+          await saveTransaction_keys(transaction_keys);
+          let res: Request_Payment_Response = {
+            id: Number(message0210.getUnpack().getP37()),
+            rc: 0,
+            rcmessage: "EN CURSO",
+            servertime: String(new Date()),
+            workkey: {
+              check_value: transaction_keys.check_value,
+              crc32: transaction_keys.crc32,
+              key: transaction_keys.workkey_key,
+              ksn: transaction_keys.ksn,
+            },
+          };
           console.log("resTerminal:");
-          console.log(resTerminal);
-          let terminalConnections = Terminal.getTerminals();
-          terminalConnections.sendMessageConnection(
-            Number(resTerminal.trace_id),
-            resTerminal
-          );
+          console.log(res);
+          let terminalConnections = TerminalCollection.getInstance();
+          terminalConnections.sendMessageConnection(Number(res.id), res);
         } else {
           // Respuesta 0210 de transaccion normal
-          console.log("\n\n");
-          let resTerminal: Execute_Payment_Response = director.getRes0210();
+          let res: Execute_Payment_Response = {
+            id: Number(message0210.getUnpack().getP37()), // retrieval reference number
+            timestamp: new Date().toDateString(),
+            rc: message0210.getUnpack().getP39() == "00" ? 0 : 1, // response code
+            rcdatetime: message0210.getUnpack().getP13(), // local transaction date
+            rcmessage:
+              message0210.getUnpack().getP39() == "00"
+                ? "APROBADA"
+                : "DESAPROBADA", // cambiar a posibles respestas
+            ticket: Number(message0210.getUnpack().getP11()), // system trace audit number
+            authorization: message0210.getUnpack().getP38(), // Authorization ID Response
+            keys_expired: false,
+          };
           console.log("resTerminal:");
-          console.log(resTerminal);
-          let terminalConnections = Terminal.getTerminals();
-          terminalConnections.sendMessageConnection(
-            Number(resTerminal.ticket),
-            resTerminal
-          );
+          console.log(res);
+          let terminalConnections = TerminalCollection.getInstance();
+          terminalConnections.sendMessageConnection(Number(res.ticket), res);
         }
         break;
       case "0430":
@@ -109,6 +165,7 @@ export class Prosa {
       // this.message0800(message);
       default:
         console.log("\nTipo de mensaje (MTI) no soportado por el Servidor");
+        console.log(message);
         break;
     }
   }

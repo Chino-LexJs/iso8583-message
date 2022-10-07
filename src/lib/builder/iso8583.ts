@@ -1,6 +1,6 @@
-import { Builder } from "./builder";
+import { unpack } from "./unpack";
 
-export class iso8583 implements Builder {
+export class iso8583 implements unpack {
   P1!: string;
   P3!: string;
   P4!: string;
@@ -163,159 +163,159 @@ export class iso8583 implements Builder {
    * SETERS para los data elements
    */
 
-  setP1(data: string): Builder {
+  setP1(data: string): unpack {
     this.P1 = data;
     return this;
   }
-  setP3(data: string): Builder {
+  setP3(data: string): unpack {
     this.P3 = data;
     return this;
   }
-  setP4(data: string): Builder {
+  setP4(data: string): unpack {
     this.P4 = data;
     return this;
   }
-  setP7(data: string): Builder {
+  setP7(data: string): unpack {
     this.P7 = data;
     return this;
   }
-  setP11(data: string): Builder {
+  setP11(data: string): unpack {
     this.P11 = data;
     return this;
   }
-  setP12(data: string): Builder {
+  setP12(data: string): unpack {
     this.P12 = data;
     return this;
   }
-  setP13(data: string): Builder {
+  setP13(data: string): unpack {
     this.P13 = data;
     return this;
   }
-  setP17(data: string): Builder {
+  setP17(data: string): unpack {
     this.P17 = data;
     return this;
   }
-  setP18(data: string): Builder {
+  setP18(data: string): unpack {
     this.P18 = data;
     return this;
   }
-  setP22(data: string): Builder {
+  setP22(data: string): unpack {
     this.P22 = data;
     return this;
   }
-  setP25(data: string): Builder {
+  setP25(data: string): unpack {
     this.P25 = data;
     return this;
   }
-  setP32(data: string): Builder {
+  setP32(data: string): unpack {
     this.P32 = data;
     return this;
   }
-  setP35(data: string): Builder {
+  setP35(data: string): unpack {
     this.P35 = data;
     return this;
   }
-  setP37(data: string): Builder {
+  setP37(data: string): unpack {
     this.P37 = data;
     return this;
   }
-  setP38(data: string): Builder {
+  setP38(data: string): unpack {
     this.P38 = data;
     return this;
   }
-  setP39(data: string): Builder {
+  setP39(data: string): unpack {
     this.P39 = data;
     return this;
   }
-  setP41(data: string): Builder {
+  setP41(data: string): unpack {
     this.P41 = data;
     return this;
   }
-  setP42(data: string): Builder {
+  setP42(data: string): unpack {
     this.P42 = data;
     return this;
   }
-  setP43(data: string): Builder {
+  setP43(data: string): unpack {
     this.P43 = data;
     return this;
   }
-  setP44(data: string): Builder {
+  setP44(data: string): unpack {
     this.P44 = data;
     return this;
   }
-  setP45(data: string): Builder {
+  setP45(data: string): unpack {
     this.P45 = data;
     return this;
   }
-  setP48(data: string): Builder {
+  setP48(data: string): unpack {
     this.P48 = data;
     return this;
   }
-  setP49(data: string): Builder {
+  setP49(data: string): unpack {
     this.P49 = data;
     return this;
   }
-  setP54(data: string): Builder {
+  setP54(data: string): unpack {
     this.P54 = data;
     return this;
   }
-  setP60(data: string): Builder {
+  setP60(data: string): unpack {
     this.P60 = data;
     return this;
   }
-  setP61(data: string): Builder {
+  setP61(data: string): unpack {
     this.P61 = data;
     return this;
   }
-  setP62(data: string): Builder {
+  setP62(data: string): unpack {
     this.P62 = data;
     return this;
   }
-  setP63(data: string): Builder {
+  setP63(data: string): unpack {
     this.P63 = data;
     return this;
   }
-  setS70(data: string): Builder {
+  setS70(data: string): unpack {
     this.P70 = data;
     return this;
   }
-  setS90(data: string): Builder {
+  setS90(data: string): unpack {
     this.P90 = data;
     return this;
   }
-  setS95(data: string): Builder {
+  setS95(data: string): unpack {
     this.P95 = data;
     return this;
   }
-  setS100(data: string): Builder {
+  setS100(data: string): unpack {
     this.P100 = data;
     return this;
   }
-  setS102(data: string): Builder {
+  setS102(data: string): unpack {
     this.P102 = data;
     return this;
   }
-  setS120(data: string): Builder {
+  setS120(data: string): unpack {
     this.P120 = data;
     return this;
   }
-  setS121(data: string): Builder {
+  setS121(data: string): unpack {
     this.P121 = data;
     return this;
   }
-  setS122(data: string): Builder {
+  setS122(data: string): unpack {
     this.P122 = data;
     return this;
   }
-  setS123(data: string): Builder {
+  setS123(data: string): unpack {
     this.P123 = data;
     return this;
   }
-  setS125(data: string): Builder {
+  setS125(data: string): unpack {
     this.P125 = data;
     return this;
   }
-  setS126(data: string): Builder {
+  setS126(data: string): unpack {
     this.P126 = data;
     return this;
   }

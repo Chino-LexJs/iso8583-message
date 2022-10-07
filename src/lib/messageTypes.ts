@@ -40,10 +40,10 @@ interface Request_Payment {
 
 // NOTA: rc==-1: Continue to EXECUTE  rc>0: Reserve failed
 interface Request_Payment_Response {
-  servertime: string;
+  id: number;
   rc: number;
   rcmessage: string;
-  id: number;
+  servertime: string;
   workkey: {
     ksn: string;
     key: string;

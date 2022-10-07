@@ -1,24 +1,22 @@
 import { pool } from "./db";
-import { message_request, message_execute_Payment } from "./types";
+import { terminal_request, message_execute_Payment } from "./types";
 
-async function getRequestById(id: number): Promise<any> {
+async function getTerminal_RequestById(id: number): Promise<any> {
   try {
     let res: any = await pool.query(
-      `SELECT * FROM message_request WHERE request_id = ${id}`
+      `SELECT * FROM terminal_request WHERE id = ${id}`
     );
     return res[0][0];
   } catch (error) {
     console.log(error);
   }
 }
-async function saveRequest(
-  message: message_request | message_execute_Payment
-): Promise<any> {
+async function saveTerminal_request(message: terminal_request): Promise<any> {
   try {
-    let content = JSON.stringify(message.content);
+    let request = JSON.stringify(message.request);
     let res: any = await pool.query(
-      "INSERT INTO message_request (mti, content) VALUES (?,?)",
-      [message.mti, content]
+      "INSERT INTO terminal_request (terminal_id, timestamp, request) VALUES (?,?,?)",
+      [message.terminal_id, message.timestamp, request]
     );
     return res[0].insertId;
   } catch (error) {
@@ -56,8 +54,8 @@ async function setReverse_idRequest(
 }
 
 export {
-  getRequestById,
-  saveRequest,
+  getTerminal_RequestById,
+  saveTerminal_request,
   setResponseDataRequest,
   setReverse_idRequest,
 };

@@ -9,9 +9,8 @@ import { pool } from "./db";
 async function getTerminal(terminal_id: string): Promise<any> {
   try {
     let res: any = await pool.query(
-      `SELECT * FROM terminal WHERE terminal_id = "${terminal_id}"`
+      `SELECT * FROM terminal WHERE id = "${terminal_id}"`
     );
-    console.log(res);
     return res[0][0];
   } catch (error) {
     console.log(error);

@@ -3,7 +3,6 @@
  */
 
 import { Director } from "./lib/builder/director";
-import { DirectorTerminal } from "./lib/builder/directorTerminal";
 import { MessageProsa } from "./lib/messageProsa";
 import { Token_C4, Token_EX, Token_Q1, Token_Q2 } from "./lib/tokensTypes";
 
@@ -26,36 +25,36 @@ server.on("connection", (socket: any) => {
   socket.on(
     "data",
     (message: string) => {
-      let msg = new MessageProsa(message);
-      let director = new DirectorTerminal(msg.getBuilder());
-      let resTerminal = director.get0200();
-      let referenceNumber = director.getBuilder().getP37();
-      let msgToPideaky = new MessageProsa(message0210);
-      let directorToPideaky = new Director(msgToPideaky.getBuilder());
-      directorToPideaky
-        .getBuilder()
-        .setP11(Number(referenceNumber).toString().padStart(6, "0"));
-      directorToPideaky.getBuilder().setP37(referenceNumber);
-      console.log("Builder from pideaky");
-      console.log(director.getBuilder());
-      if (director.getField07_ES() == 1) {
-        console.log(
-          "SEGUN CAMPO 07 DE TOKEN_ES ES NECESARIO REALIZAR UN INICIO DE LLAVES"
-        );
-        directorToPideaky.getBuilder().setP63(tokens_initKeys());
-      } else {
-        console.log(
-          "SEGUN CAMPO 07 DE TOKEN_ES NO ES NECESARIO REALIZAR UN INICIO DE LLAVES"
-        );
-      }
-      let resTerminalToPideaky = directorToPideaky.get0210();
-      console.log("\nBuilder to pideaky:");
-      console.log(msgToPideaky.getBuilder());
-      console.log("\n\n\n", resTerminalToPideaky);
-      // console.log(message);
-      // sendMessagePIDEAKY(message);
-      socket.write(resTerminalToPideaky);
-      console.log("Mensaje enviado");
+      // let msg = new MessageProsa(message);
+      // let director = new DirectorTerminal(msg.getBuilder());
+      // let resTerminal = director.get0200();
+      // let referenceNumber = director.getBuilder().getP37();
+      // let msgToPideaky = new MessageProsa(message0210);
+      // let directorToPideaky = new Director(msgToPideaky.getBuilder());
+      // directorToPideaky
+      //   .getBuilder()
+      //   .setP11(Number(referenceNumber).toString().padStart(6, "0"));
+      // directorToPideaky.getBuilder().setP37(referenceNumber);
+      // console.log("Builder from pideaky");
+      // console.log(director.getBuilder());
+      // if (director.getField07_ES() == 1) {
+      //   console.log(
+      //     "SEGUN CAMPO 07 DE TOKEN_ES ES NECESARIO REALIZAR UN INICIO DE LLAVES"
+      //   );
+      //   directorToPideaky.getBuilder().setP63(tokens_initKeys());
+      // } else {
+      //   console.log(
+      //     "SEGUN CAMPO 07 DE TOKEN_ES NO ES NECESARIO REALIZAR UN INICIO DE LLAVES"
+      //   );
+      // }
+      // let resTerminalToPideaky = directorToPideaky.get0210();
+      // console.log("\nBuilder to pideaky:");
+      // console.log(msgToPideaky.getBuilder());
+      // console.log("\n\n\n", resTerminalToPideaky);
+      // // console.log(message);
+      // // sendMessagePIDEAKY(message);
+      // socket.write(resTerminalToPideaky);
+      console.log(message);
     },
     "uft8"
   );

@@ -1,4 +1,4 @@
-import { Builder } from "./builder";
+import { IBuilder, Message } from "./builder";
 import { array_to_hexa } from "../../util/array_to_hexa";
 import {
   trasmissionDateAndTime,
@@ -22,19 +22,19 @@ import {
 } from "../tokensTypes";
 
 export class Director {
-  protected builder: Builder;
+  protected builder: IBuilder;
   /**
    * El director trabaja con cualquier instancia builder que el cliente le envie por parametro
    * De esta manera, el cliente puede alterar el tipo de mensaje que desea implementar
    */
-  constructor(builder: Builder) {
+  constructor(builder: IBuilder) {
     this.builder = builder;
   }
 
-  public setBuilder(builder: Builder): void {
+  public setBuilder(builder: IBuilder): void {
     this.builder = builder;
   }
-  public getBuilder(): Builder {
+  public getBuilder(): IBuilder {
     return this.builder;
   }
   /**
@@ -43,7 +43,238 @@ export class Director {
    */
 
   // MANEJADOR PARA TERMINAL
+  public BuildRequestMessage(
+    id_request: number,
+    request_message: Request_Payment
+  ): Message {
+    this.builder.setHeader();
+    this.builder.setMti();
+    this.builder.setBitmap();
+    this.builder.setDataElements(
+      this.addDataElements(id_request, request_message)
+    );
+    return this.builder.getMessage();
+  }
 
+  private addDataElements(
+    id_request: number,
+    request_message: Request_Payment
+  ) {
+    let amount = request_message.amount
+      .toString()
+      .replace(/./g, "")
+      .padStart(12, "0");
+    let dataElements = new Map();
+    dataElements
+      .set(1, "000000001000018C")
+      .set(3, "000000")
+      .set(4, amount)
+      .set(
+        7,
+        String(new Date().getMonth() + 1).padStart(2, "0") +
+          String(new Date().getDate()).padStart(2, "0") +
+          String(new Date().getHours).padStart(2, "0") +
+          String(new Date().getMinutes).padStart(2, "0") +
+          String(new Date().getSeconds).padStart(2, "0")
+      )
+      .set(11, String(id_request).padStart(6, "0"))
+      .set(
+        12,
+        String(new Date().getHours).padStart(2, "0") +
+          String(new Date().getMinutes).padStart(2, "0") +
+          String(new Date().getSeconds()).padStart(2, "0")
+      )
+      .set(
+        13,
+        String(new Date().getMonth() + 1).padStart(2, "0") +
+          String(new Date().getDate()).padStart(2, "0")
+      )
+      .set(
+        17,
+        String(new Date().getMonth() + 1).padStart(2, "0") +
+          String(new Date().getDate()).padStart(2, "0")
+      )
+      .set(18, "5399")
+      .set(22, "901") // entry mode viene de RequestPaymentMessag)
+      .set(25, "00")
+      .set(32, "1109000000003")
+      .set(37, String(id_request).padStart(12, "0"))
+      .set(42, String(request_message.device.serialnr).padStart(15, "0"))
+      .set(43, "0000000000000000000000000000000000000000")
+      .set(48, "027000000000000000000000000000")
+      .set(49, "484")
+      .set(60, "0160000000000000000")
+      .set(61, "0190000000000000000000")
+      .set(63, "0010") // Tokens ES y E)
+      .set(100, "010")
+      .set(120, "02900000000000000000000000000000")
+      .set(121, "02000000000000000000000")
+      .set(125, "012ADINTR000000")
+      .set(126, "03800000000000000000000000000000000000000");
+    console.log(dataElements);
+    return "";
+  }
+
+  public BuildInitKeyMessage(
+    request_message: Request_Payment,
+    id_request: number
+  ) {
+    this.builder.setHeader();
+    this.builder.setMti();
+    this.builder.setBitmap();
+    this.builder.setDataElements(
+      this.addDataElements_initKeys(request_message, id_request)
+    );
+    return this.builder.getMessage();
+  }
+
+  private addDataElements_initKeys(
+    request_payment: Request_Payment,
+    id_request: number
+  ): string {
+    let amount = "".padStart(12, "0");
+    let dataElements = new Map();
+    dataElements
+      .set(1, "000000001000018C")
+      .set(3, "000000")
+      .set(4, "000000000000")
+      .set(
+        7,
+        String(new Date().getMonth() + 1).padStart(2, "0") +
+          String(new Date().getDate()).padStart(2, "0") +
+          String(new Date().getHours()).padStart(2, "0") +
+          String(new Date().getMinutes()).padStart(2, "0") +
+          String(new Date().getSeconds()).padStart(2, "0")
+      )
+      .set(11, String(id_request).padStart(6, "0"))
+      .set(
+        12,
+        String(new Date().getHours()).padStart(2, "0") +
+          String(new Date().getMinutes()).padStart(2, "0") +
+          String(new Date().getSeconds()).padStart(2, "0")
+      )
+      .set(
+        13,
+        String(new Date().getMonth() + 1).padStart(2, "0") +
+          String(new Date().getDate()).padStart(2, "0")
+      )
+      .set(
+        17,
+        String(new Date().getMonth() + 1).padStart(2, "0") +
+          String(new Date().getDate()).padStart(2, "0")
+      )
+      .set(18, "5399")
+      .set(22, "901") // entry mode viene de RequestPaymentMessag)
+      .set(25, "00")
+      .set(32, "09000000000")
+      .set(37, String(id_request).padStart(12, "0"))
+      .set(42, String(request_payment.device.serialnr).padStart(15, "0"))
+      .set(43, "0000000000000000000000000000000000000000")
+      .set(48, "027000000000000000000000000000")
+      .set(49, "484")
+      .set(60, "0160000000000000000")
+      .set(61, "0190000000000000000000")
+      .set(63, this.tokens_initKeys(request_payment))
+      .set(100, "010")
+      .set(120, "02900000000000000000000000000000")
+      .set(121, "02000000000000000000000")
+      .set(125, "012ADINTR000000")
+      .set(126, "03800000000000000000000000000000000000000");
+    console.log(dataElements);
+    let dataElementsTrama = "";
+    dataElements.forEach((de) => {
+      dataElementsTrama += de;
+    });
+    return dataElementsTrama;
+  }
+
+  // /**
+  //  * Retorna un valor booleano del contenido del campo 07 del token ES
+  //  * Esta funcion esta ajustada a que el token siempre tenga una longitud fija de 00060 como dicta el pdf ESTÁNDAR HOST POS ADQUIRENTE Versión 7.0.8
+  //  * @returns {boolean} Si el campo 07 del token ES es 1 se retorna true, en caso contrario false
+  //  */
+  // public getField07_ES(): number {
+  //   let p63 = this.builder.getP63();
+  //   return Number(p63[p63.indexOf("! ES") + 69]);
+  // }
+  // protected get_tokenEX(): Token_EX {
+  //   let p63 = this.builder.getP63();
+  //   let indexEX = p63.indexOf("! EX") + 2;
+  //   let tokenEX: Token_EX = {
+  //     key_cifrada: p63.substr(indexEX + 8, 32),
+  //     ksn: p63.substr(indexEX + 40, 20),
+  //     check_value: p63.substr(indexEX + 60, 6),
+  //     status: p63.substr(indexEX + 66, 2),
+  //     crc32: p63.substr(indexEX + 68, 8),
+  //   };
+  //   return tokenEX;
+  // }
+
+  /**
+   * @function tokens_initKeys
+   * @funcdesc Tokens usados: Q1, Q2, C4, ES y EW
+   * @funcdesc Armado de estructura para tokens formato: [length][Header Token]:[[token header, token data], [token header, token data], ...]
+   * @funcdesc Header Token: "& 0230" (02): Cantidad de tokens en el msj | (30): longitud de data element
+   * @funcdesc Token header: "! 133011101361109261209 " (13): Token ID | (30): Token lenght| (11101361109261209): Token Data
+   * @returns {string} P-63
+   */
+  private tokens_initKeys(message: Request_Payment): string {
+    let p63 = "";
+    let tokenEs: Token_ES = {
+      version: message.device.version,
+      n_serie: message.device.serialnr,
+      bines_caja: "",
+      bines_pinpad: "",
+      bines_version: "00",
+      llave: "1",
+    };
+    let tokenEw: Token_EW = {
+      check_value: message.key.check_value,
+      crc32: message.key.crc32,
+      rsa: message.key.rsa,
+      rsa_name: message.key.name,
+    };
+    let tokenQ1: Token_Q1 = {
+      id_authMode: "0",
+      id_validMode: "2",
+    };
+    let tokenQ2: Token_Q2 = {
+      id_authMode: "03",
+    };
+    let tokenC4: Token_C4 = {
+      ind_terminal: "0",
+      term_oper_ind: "0",
+      loc_terminal: "0",
+      ind_tarjeth: "0",
+      ind_tarjet: "0",
+      ind_cap_tarjet: "0",
+      ind_status: "0",
+      level_security: "0",
+      routing_ind: "0",
+      act_terminal: "0",
+      ind_cap_datos: "5",
+      met_ind_tarjet: "2",
+    };
+    let headerToken = "& 05",
+      tokensData = "",
+      q1 = this.tokenQ1(tokenQ1),
+      q2 = this.tokenQ2(tokenQ2),
+      c4 = this.tokenC4(tokenC4),
+      es = this.tokenES(tokenEs),
+      ew = this.tokenEW(tokenEw);
+    tokensData = tokensData.concat(
+      `! Q1${q1.length.toString().padStart(5, "0")} ${q1}`,
+      `! Q2${q2.length.toString().padStart(5, "0")} ${q2}`,
+      `! C4${c4.length.toString().padStart(5, "0")} ${c4}`,
+      `! ES${es.length.toString().padStart(5, "0")} ${es}`,
+      `! EW${ew.length.toString().padStart(5, "0")} ${ew}`
+    );
+    p63 = p63.concat(headerToken, tokensData.length.toString(), tokensData);
+    p63 = p63.length.toString().padStart(3, "0") + p63;
+    return p63;
+  }
+
+  /*
   public getRes0210(): Execute_Payment_Response {
     let res: Execute_Payment_Response = {
       id: Number(this.builder.getP37()), // retrieval reference number
@@ -172,91 +403,7 @@ export class Director {
     );
     return message;
   }
-  /**
-   * Retorna un valor booleano del contenido del campo 07 del token ES
-   * Esta funcion esta ajustada a que el token siempre tenga una longitud fija de 00060 como dicta el pdf ESTÁNDAR HOST POS ADQUIRENTE Versión 7.0.8
-   * @returns {boolean} Si el campo 07 del token ES es 1 se retorna true, en caso contrario false
-   */
-  public getField07_ES(): number {
-    let p63 = this.builder.getP63();
-    return Number(p63[p63.indexOf("! ES") + 69]);
-  }
-  protected get_tokenEX(): Token_EX {
-    let p63 = this.builder.getP63();
-    let indexEX = p63.indexOf("! EX") + 2;
-    let tokenEX: Token_EX = {
-      key_cifrada: p63.substr(indexEX + 8, 32),
-      ksn: p63.substr(indexEX + 40, 20),
-      check_value: p63.substr(indexEX + 60, 6),
-      status: p63.substr(indexEX + 66, 2),
-      crc32: p63.substr(indexEX + 68, 8),
-    };
-    return tokenEX;
-  }
 
-  /**
-   * @function tokens_initKeys
-   * @funcdesc Tokens usados: Q1, Q2, C4, ES y EW
-   * @funcdesc Armado de estructura para tokens formato: [length][Header Token]:[[token header, token data], [token header, token data], ...]
-   * @funcdesc Header Token: "& 0230" (02): Cantidad de tokens en el msj | (30): longitud de data element
-   * @funcdesc Token header: "! 133011101361109261209 " (13): Token ID | (30): Token lenght| (11101361109261209): Token Data
-   * @returns {string} P-63
-   */
-  private tokens_initKeys(message: any): string {
-    let p63 = "";
-    let tokenEs: Token_ES = {
-      version: message.device.version,
-      n_serie: message.device.serial,
-      bines_caja: "",
-      bines_pinpad: "",
-      bines_version: "00",
-      llave: "1",
-    };
-    let tokenEw: Token_EW = {
-      check_value: message.check_value,
-      crc32: message.crc32,
-      rsa: message.rsa,
-      rsa_name: message.rsa_name,
-    };
-    let tokenQ1: Token_Q1 = {
-      id_authMode: "0",
-      id_validMode: "2",
-    };
-    let tokenQ2: Token_Q2 = {
-      id_authMode: "03",
-    };
-    let tokenC4: Token_C4 = {
-      ind_terminal: "0",
-      term_oper_ind: "0",
-      loc_terminal: "0",
-      ind_tarjeth: "0",
-      ind_tarjet: "0",
-      ind_cap_tarjet: "0",
-      ind_status: "0",
-      level_security: "0",
-      routing_ind: "0",
-      act_terminal: "0",
-      ind_cap_datos: "5",
-      met_ind_tarjet: "2",
-    };
-    let headerToken = "& 05",
-      tokensData = "",
-      q1 = this.tokenQ1(tokenQ1),
-      q2 = this.tokenQ2(tokenQ2),
-      c4 = this.tokenC4(tokenC4),
-      es = this.tokenES(tokenEs),
-      ew = this.tokenEW(tokenEw);
-    tokensData = tokensData.concat(
-      `! Q1${q1.length.toString().padStart(5, "0")} ${q1}`,
-      `! Q2${q2.length.toString().padStart(5, "0")} ${q2}`,
-      `! C4${c4.length.toString().padStart(5, "0")} ${c4}`,
-      `! ES${es.length.toString().padStart(5, "0")} ${es}`,
-      `! EW${ew.length.toString().padStart(5, "0")} ${ew}`
-    );
-    p63 = p63.concat(headerToken, tokensData.length.toString(), tokensData);
-    p63 = p63.length.toString().padStart(3, "0") + p63;
-    return p63;
-  }
 
   protected token_transaction(
     request: Request_Payment,
@@ -379,12 +526,6 @@ export class Director {
     ewData = ewData.concat(campo01, campo02, campo03, campo04, campo05);
     return ewData;
   }
-  /**
-   * 1: Identificador del modo de autorización
-   * 2: Identificador del modo de validación del criptograma
-   * @param {Token_Q1} campos
-   * @returns {string}
-   */
   private tokenQ1(campos: Token_Q1): string {
     let q1Data = "",
       campo01 = campos.id_authMode,
@@ -412,7 +553,20 @@ export class Director {
       campo10 = campos.act_terminal,
       campo11 = campos.ind_cap_datos,
       campo12 = campos.met_ind_tarjet;
-    c4Data = c4Data.concat(campo01, campo02);
+    c4Data = c4Data.concat(
+      campo01,
+      campo02,
+      campo03,
+      campo04,
+      campo05,
+      campo06,
+      campo07,
+      campo08,
+      campo09,
+      campo10,
+      campo11,
+      campo12
+    );
     return c4Data;
   }
   /**

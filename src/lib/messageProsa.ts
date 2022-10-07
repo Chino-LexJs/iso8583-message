@@ -1,22 +1,23 @@
-import { Builder } from "./builder/builder";
+import { unpack } from "./builder/unpack";
 import { iso8583 } from "./builder/iso8583";
 import { Data_Element } from "./messageTypes";
+import { Token_EX } from "./tokensTypes";
 
 export class MessageProsa {
   private message: string;
-  private builder: Builder;
+  private unpack: unpack;
   constructor(message: string) {
     this.message = message;
-    this.builder = this.unpack(message);
+    this.unpack = this.unpack_message(message);
   }
   public getMessage(): string {
     return this.message;
   }
-  public getBuilder(): Builder {
-    return this.builder;
+  public getUnpack(): unpack {
+    return this.unpack;
   }
-  private unpack(message: string): Builder {
-    let unpack: Builder = new iso8583();
+  private unpack_message(message: string): unpack {
+    let unpack: unpack = new iso8583();
     let dataElementsFields: number[] = this.usedFields(message);
     let init = 0; // indice donde empiezan los data elements en el message
     let allFields: string = message.slice(32); // desde el indice 32 de la trama hasta el final estan los data elements
@@ -24,7 +25,7 @@ export class MessageProsa {
       let field = this.dataElements.find((item) => item.campo == fiedlNumber);
       if (field != undefined) {
         let dataElement: string = this.getDataElement(field, init, allFields);
-        this.setBuilder(fiedlNumber, dataElement, unpack);
+        this.setUnpack(fiedlNumber, dataElement, unpack);
         init = init + dataElement.length;
       }
     });
@@ -50,11 +51,7 @@ export class MessageProsa {
     }
     return dataElement;
   }
-  private setBuilder(
-    fiedlNumber: number,
-    dataElement: string,
-    builder: Builder
-  ) {
+  private setUnpack(fiedlNumber: number, dataElement: string, unpack: unpack) {
     if (
       fiedlNumber == 1 ||
       fiedlNumber == 3 ||
@@ -85,7 +82,7 @@ export class MessageProsa {
       fiedlNumber == 62 ||
       fiedlNumber == 63
     ) {
-      builder[`setP${fiedlNumber}`](dataElement);
+      unpack[`setP${fiedlNumber}`](dataElement);
     }
     if (
       fiedlNumber == 70 ||
@@ -99,8 +96,20 @@ export class MessageProsa {
       fiedlNumber == 125 ||
       fiedlNumber == 126
     ) {
-      builder[`setS${fiedlNumber}`](dataElement);
+      unpack[`setS${fiedlNumber}`](dataElement);
     }
+  }
+  public get_tokenEX(): Token_EX {
+    let p63 = this.unpack.getP63();
+    let indexEX = p63.indexOf("! EX") + 2;
+    let tokenEX: Token_EX = {
+      key_cifrada: p63.substr(indexEX + 8, 32),
+      ksn: p63.substr(indexEX + 40, 20),
+      check_value: p63.substr(indexEX + 60, 6),
+      status: p63.substr(indexEX + 66, 2),
+      crc32: p63.substr(indexEX + 68, 8),
+    };
+    return tokenEX;
   }
 
   /**

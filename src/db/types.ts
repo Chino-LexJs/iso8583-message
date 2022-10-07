@@ -1,8 +1,9 @@
 import { Request_Payment, Execute_Payment } from "../lib/messageTypes";
 
-interface message_request {
-  mti: string;
-  content: Request_Payment;
+interface terminal_request {
+  terminal_id: string;
+  timestamp: string;
+  request: Request_Payment;
 }
 
 interface message_execute_Payment {
@@ -12,7 +13,6 @@ interface message_execute_Payment {
 }
 
 interface tansaction_keys {
-  transaction_keys_id: number;
   id_terminal: string;
   timestamp: string;
   check_value: string;
@@ -23,4 +23,4 @@ interface tansaction_keys {
   workkey_key: string;
 }
 
-export { message_request, message_execute_Payment, tansaction_keys };
+export { terminal_request, message_execute_Payment, tansaction_keys };
