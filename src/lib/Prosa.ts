@@ -88,24 +88,6 @@ export class Prosa {
         if (p63 && p63.indexOf("! EX") != -1) {
           // Respuesta 0210 de incio de llaves
           let token_EX: Token_EX = message0210.get_tokenEX();
-          // let res: InitKeys_Response = {
-          //   request_id: message0210.getUnpack().getP37(), // retrieval reference number,
-          //   request_date: message0210.getUnpack().getP13(), // local transaction date,
-          //   request_status:
-          //     message0210.getUnpack().getP39() == "00" ? true : false, // response code,
-          //   http_code: 0,
-          //   trace_id: message0210.getUnpack().getP11(), // system trace audit number
-          //   error_code: message0210.getUnpack().getP32().slice(2), // Acquiring Intitution ID Code,
-          //   description:
-          //     message0210.getUnpack().getP39() == "00"
-          //       ? "APROBADA"
-          //       : "DESAPROBADA",
-          //   authorization: message0210.getUnpack().getP38(),
-          //   ksn: token_EX.ksn,
-          //   key: token_EX.key_cifrada,
-          //   key_crc32: token_EX.crc32,
-          //   key_check_value: token_EX.check_value,
-          // };
           let terminal_request: terminal_request =
             await getTerminal_RequestById(
               Number(message0210.getUnpack().getP37())
@@ -141,7 +123,7 @@ export class Prosa {
           // Respuesta 0210 de transaccion normal
           let res: Execute_Payment_Response = {
             id: Number(message0210.getUnpack().getP37()), // retrieval reference number
-            timestamp: new Date().toDateString(),
+            timestamp: String(new Date()),
             rc: message0210.getUnpack().getP39() == "00" ? 0 : 1, // response code
             rcdatetime: message0210.getUnpack().getP13(), // local transaction date
             rcmessage:
@@ -155,7 +137,7 @@ export class Prosa {
           console.log("resTerminal:");
           console.log(res);
           let terminalConnections = TerminalCollection.getInstance();
-          terminalConnections.sendMessageConnection(Number(res.ticket), res);
+          terminalConnections.sendMessageConnection(Number(res.id), res);
         }
         break;
       case "0430":

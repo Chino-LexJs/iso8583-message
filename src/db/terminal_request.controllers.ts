@@ -23,6 +23,19 @@ async function saveTerminal_request(message: terminal_request): Promise<any> {
     console.log(error);
   }
 }
+
+async function updateExecute(id: number, executed: string) {
+  try {
+    let res: any = await pool.query(
+      `UPDATE terminal_request SET executed = "${executed}" WHERE id = ${id}`
+    );
+    console.log(res);
+    return res;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
 async function setResponseDataRequest(
   request_id: number,
   responsedate: Date,
@@ -56,6 +69,7 @@ async function setReverse_idRequest(
 export {
   getTerminal_RequestById,
   saveTerminal_request,
+  updateExecute,
   setResponseDataRequest,
   setReverse_idRequest,
 };

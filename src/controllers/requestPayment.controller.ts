@@ -4,7 +4,6 @@ import { getTerminal } from "../db/terminal.controller";
 import { saveTerminal_request } from "../db/terminal_request.controllers";
 import { tansaction_keys, terminal_request } from "../db/types";
 import { getTransaction_keys } from "../db/transaction_keys.controller";
-import { RequestBuilder } from "../lib/builder/requestBuilder";
 import { Director } from "../lib/builder/director";
 import { GetBuilder, Message } from "../lib/builder/builder";
 import { Prosa } from "../lib/Prosa";
@@ -115,4 +114,5 @@ const init_keys = async (
   Prosa.getInstance().getSocket().write(messageToProsa, "utf8");
   Prosa.getInstance().getSocket().write("\n");
   console.log("Mensaje enviado a Prosa");
+  // ver respuesta de prosa en Prosa.onData() de tipo 0210
 };

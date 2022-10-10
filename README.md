@@ -38,14 +38,7 @@ MYSQL_PASSWORD: password_de_equipo
 
 ```
 
-_Primero correr servidor PROSA_
-
-```shell
-
-ts-node ./src/prosa-test.ts
-```
-
-_Luego correr servidor (comando para desarrollo)_
+_Correr servidor (comando para desarrollo)_
 
 ```shell
 

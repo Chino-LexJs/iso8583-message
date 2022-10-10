@@ -1,12 +1,13 @@
-import { Execute_Payment } from "../lib/messageTypes";
 import express from "express";
 import { requestPayment } from "../controllers/requestPayment.controller";
+import { executePayment } from "../controllers/executePayment.controller";
 const router = express.Router();
 
 // requestPayment
 router.post("/requestPayment", requestPayment);
 
 // executePayment
+router.post("/executePayment", executePayment);
 // router.post("/executePayment", async (req, res) => {
 //   let execute_payment: Execute_Payment = req.body;
 //   console.log("/executePayment\n");

@@ -73,15 +73,15 @@ export class Director {
         7,
         String(new Date().getMonth() + 1).padStart(2, "0") +
           String(new Date().getDate()).padStart(2, "0") +
-          String(new Date().getHours).padStart(2, "0") +
-          String(new Date().getMinutes).padStart(2, "0") +
-          String(new Date().getSeconds).padStart(2, "0")
+          String(new Date().getHours()).padStart(2, "0") +
+          String(new Date().getMinutes()).padStart(2, "0") +
+          String(new Date().getSeconds()).padStart(2, "0")
       )
       .set(11, String(id_request).padStart(6, "0"))
       .set(
         12,
-        String(new Date().getHours).padStart(2, "0") +
-          String(new Date().getMinutes).padStart(2, "0") +
+        String(new Date().getHours()).padStart(2, "0") +
+          String(new Date().getMinutes()).padStart(2, "0") +
           String(new Date().getSeconds()).padStart(2, "0")
       )
       .set(
@@ -97,7 +97,7 @@ export class Director {
       .set(18, "5399")
       .set(22, "901") // entry mode viene de RequestPaymentMessag)
       .set(25, "00")
-      .set(32, "1109000000003")
+      .set(32, "09000000003")
       .set(37, String(id_request).padStart(12, "0"))
       .set(42, String(request_message.device.serialnr).padStart(15, "0"))
       .set(43, "0000000000000000000000000000000000000000")
@@ -112,7 +112,11 @@ export class Director {
       .set(125, "012ADINTR000000")
       .set(126, "03800000000000000000000000000000000000000");
     console.log(dataElements);
-    return "";
+    let dataElementsTrama = "";
+    dataElements.forEach((de) => {
+      dataElementsTrama += de;
+    });
+    return dataElementsTrama;
   }
 
   public BuildInitKeyMessage(
