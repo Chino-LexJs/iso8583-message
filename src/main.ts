@@ -6,6 +6,7 @@ const TIEMPO_LOOP_REVERSE = 30000,
 function connectToProsa() {
   if (!prosa.isConnected()) {
     console.log("Intentando conectar con prosa");
+
     prosa.connect();
   }
 }

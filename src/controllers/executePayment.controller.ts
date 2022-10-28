@@ -27,7 +27,7 @@ export const executePayment = async (req: Request, res: Response) => {
       let request = GetBuilder("0200");
       let director = new Director(request);
       let message: Message = director.BuildRequestMessage(
-        request_payment.id,
+        request_payment,
         terminal_request
       );
       TerminalCollection.getInstance().saveConnection(request_payment.id, res);

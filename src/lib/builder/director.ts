@@ -44,31 +44,31 @@ export class Director {
 
   // MANEJADOR PARA TERMINAL
   public BuildRequestMessage(
-    id_request: number,
+    execute_message: Execute_Payment,
     request_message: Request_Payment
   ): Message {
     this.builder.setHeader();
     this.builder.setMti();
     this.builder.setBitmap();
     this.builder.setDataElements(
-      this.addDataElements(id_request, request_message)
+      this.addDataElements(execute_message.id, request_message, execute_message)
     );
     return this.builder.getMessage();
   }
 
   private addDataElements(
     id_request: number,
-    request_message: Request_Payment
+    request_message: Request_Payment,
+    execute_message: Execute_Payment
   ) {
-    let amount = request_message.amount
-      .toString()
-      .replace(/./g, "")
-      .padStart(12, "0");
+    let amount = request_message.amount.toString().replace(".", "");
+    console.log("Request_message.amount: ", request_message.amount);
+    console.log("Amount: ", amount);
     let dataElements = new Map();
     dataElements
       .set(1, "000000001000018C")
       .set(3, "000000")
-      .set(4, amount)
+      .set(4, amount.padStart(12, "0"))
       .set(
         7,
         String(new Date().getMonth() + 1).padStart(2, "0") +
@@ -105,7 +105,7 @@ export class Director {
       .set(49, "484")
       .set(60, "0160000000000000000")
       .set(61, "0190000000000000000000")
-      .set(63, "0010") // Tokens ES y E)
+      .set(63, this.token_transaction(request_message, execute_message)) // Tokens ES y E)
       .set(100, "010")
       .set(120, "02900000000000000000000000000000")
       .set(121, "02000000000000000000000")
@@ -184,6 +184,30 @@ export class Director {
       .set(121, "02000000000000000000000")
       .set(125, "012ADINTR000000")
       .set(126, "03800000000000000000000000000000000000000");
+    console.log(dataElements);
+    let dataElementsTrama = "";
+    dataElements.forEach((de) => {
+      dataElementsTrama += de;
+    });
+    return dataElementsTrama;
+  }
+
+  public BuildEchoMessage(id_echo_test: number, timestamp: string): Message {
+    this.builder.setHeader();
+    this.builder.setMti();
+    this.builder.setBitmap();
+    this.builder.setDataElements(
+      this.setDataElements_echoTest(id_echo_test, timestamp)
+    );
+    return this.builder.getMessage();
+  }
+  private setDataElements_echoTest(id_echo_test: number, timestamp: string) {
+    let dataElements = new Map();
+    dataElements
+      .set(1, "0400000000000000")
+      .set(7, timestamp)
+      .set(11, String(id_echo_test).padStart(6, "0"))
+      .set(70, "301");
     console.log(dataElements);
     let dataElementsTrama = "";
     dataElements.forEach((de) => {
@@ -272,6 +296,46 @@ export class Director {
       `! C4${c4.length.toString().padStart(5, "0")} ${c4}`,
       `! ES${es.length.toString().padStart(5, "0")} ${es}`,
       `! EW${ew.length.toString().padStart(5, "0")} ${ew}`
+    );
+    p63 = p63.concat(headerToken, tokensData.length.toString(), tokensData);
+    p63 = p63.length.toString().padStart(3, "0") + p63;
+    return p63;
+  }
+
+  private token_transaction(
+    request: Request_Payment,
+    message: Execute_Payment
+  ): string {
+    let p63 = "";
+    let tokenEs: Token_ES = {
+      version: request.device.version,
+      n_serie: request.device.serialnr,
+      bines_caja: message.cardInformation.bin,
+      bines_pinpad: "",
+      bines_version: "00", // No hay pinpad cargago -> 00, sino [00, FF]
+      llave: "0", // para transaccion normal no es necesario inicio de llaves
+    };
+    let tokenEz: Token_EZ = {
+      serial_key: message.device.ksn,
+      counter: message.device.realcounter,
+      failed_counter: message.device.failcounter,
+      track2_flag: "1",
+      read_mode: "05",
+      track2_length: message.cardInformation.track2_length,
+      cvv_flag: message.cardInformation.cvv_present ? "1" : "0",
+      cvv_length: message.cardInformation.cvv_length,
+      track_flag: "0",
+      track2: message.cardInformation.track2,
+      last4: message.cardInformation.last4,
+      crc32: request.key.crc32,
+    };
+    let headerToken = "& 02",
+      tokensData = "",
+      ez = this.tokenEZ(tokenEz),
+      es = this.tokenES(tokenEs);
+    tokensData = tokensData.concat(
+      `! ES${es.length.toString().padStart(5, "0")} ${es}`,
+      `! EZ${ez.length.toString().padStart(5, "0")} ${ez}`
     );
     p63 = p63.concat(headerToken, tokensData.length.toString(), tokensData);
     p63 = p63.length.toString().padStart(3, "0") + p63;
@@ -465,7 +529,7 @@ export class Director {
       campo01 = campos.version.padStart(20, "0"),
       campo02 = campos.n_serie.padStart(20, "0"),
       campo03 = "5",
-      campo04 = campos.bines_caja.padStart(8),
+      campo04 = campos.bines_caja.padStart(8, "0"),
       campo05 = campos.bines_pinpad.padStart(8, "0"),
       campo06 = campos.bines_version,
       campo07 = campos.llave;
@@ -478,6 +542,14 @@ export class Director {
       campo06,
       campo07
     );
+    console.log("Campos de TOKEN Es:");
+    console.log("campo 01: ", campo01);
+    console.log("campo 02: ", campo02);
+    console.log("campo 03: ", campo03);
+    console.log("campo 04: ", campo04);
+    console.log("campo 05: ", campo05);
+    console.log("campo 06: ", campo06);
+    console.log("campo 07: ", campo07);
     return esData;
   }
   private tokenEZ(campos: Token_EZ): string {
@@ -508,6 +580,20 @@ export class Director {
       campo11,
       campo12
     );
+    console.log("Campos de TOKEN EZ:");
+    console.log("campo 01: ", campo01);
+    console.log("campo 02: ", campo02);
+    console.log("campo 03: ", campo03);
+    console.log("campo 04: ", campo04);
+    console.log("campo 05: ", campo05);
+    console.log("campo 06: ", campo06);
+    console.log("campo 07: ", campo07);
+    console.log("campo 08: ", campo08);
+    console.log("campo 09: ", campo09);
+    console.log("campo 10: ", campo10);
+    console.log("campo 11: ", campo11);
+    console.log("campo 12: ", campo12);
+
     return ezData;
   }
   /**

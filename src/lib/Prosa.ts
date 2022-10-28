@@ -10,6 +10,7 @@ import { TerminalCollection } from "./TerminalCollection";
 import { Token_EX } from "./tokensTypes";
 import { terminal_request } from "../db/types";
 import { saveTransaction_keys } from "../db/transaction_keys.controller";
+import { updateRes } from "../db/echo_test.controller";
 
 const { Socket } = require("net");
 const to_prosa = {
@@ -143,8 +144,14 @@ export class Prosa {
       case "0430":
         // this.message0430(message);
         break;
-      case "0800":
-      // this.message0800(message);
+      case "0810":
+        console.log("\nMENSAJE RESPUESTA DE ECHO TEST: ");
+        console.log(message);
+        let message0810 = new MessageProsa(message);
+        console.log("\nBuilder from Prosa:");
+        console.log(message0810.getUnpack());
+        await updateRes(Number(message0810.getUnpack().getP11()), true);
+        break;
       default:
         console.log("\nTipo de mensaje (MTI) no soportado por el Servidor");
         console.log(message);
@@ -164,9 +171,9 @@ export class Prosa {
       this.socket.setEncoding("utf8"); // se configura socket para manejar cadena de caracteres en el buffer[]
       this.socket.on("data", (message: string) => this.onData(message));
       this.socket.on("close", () => {
-        console.log(`\nComunicacion con MOVISTAR finalizada`);
         this.setConnected(false);
         this.socket.destroy();
+        console.log(`\nComunicacion con MOVISTAR finalizada`);
       });
       this.socket.on("error", (err: Error): void => {
         this.setConnected(false);

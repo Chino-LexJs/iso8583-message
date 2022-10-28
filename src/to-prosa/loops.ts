@@ -1,8 +1,11 @@
+import { saveEcho_test } from "../db/echo_test.controller";
+import { GetBuilder, Message } from "../lib/builder/builder";
+import { Director } from "../lib/builder/director";
 import { Prosa } from "../lib/Prosa";
 /**
  * Instance de Prosa (Singleton)
  */
-let prosa = Prosa.getInstance();
+const prosa = Prosa.getInstance();
 
 async function loopReverses() {
   // let reverses = await getReverses(); // mensajes reversos con isomessage430_id IS NULL [{reverse1}, {reverse2}...]
@@ -13,20 +16,22 @@ async function loopReverses() {
 }
 async function loopEcho() {
   console.log("Loop Echo");
-  /* let dataElements_0800 = {
-    TransmissionDateTime: TransmissionDateTime(),
-    SystemsTraceAuditNumber: "032727",
-    NetworkManagementInformationCode: "301",
-  };
-  let mti0800 = new ISO8583(new MTI0800());
-  mti0800.setFields(dataElements_0800, "0800");
-  await saveMessageDataBase(
-    mti0800.getMti(),
-    mti0800.getSystemTraceAuditNumber(),
-    mti0800.getMessage()
-  );
-  console.log(`\nMensaje echo 0800 a Movistar: ${mti0800.getMessage()}`);
-  movistar.getSocket().write(mti0800.getMessage(), "utf8"); */
+  let echo = GetBuilder("0800");
+  let director = new Director(echo);
+  let timestamp =
+    String(new Date().getMonth() + 1).padStart(2, "0") +
+    String(new Date().getDate()).padStart(2, "0") +
+    String(new Date().getHours()).padStart(2, "0") +
+    String(new Date().getMinutes()).padStart(2, "0") +
+    String(new Date().getSeconds()).padStart(2, "0");
+  let id_echo_test = await saveEcho_test(timestamp);
+  let message: Message = director.BuildEchoMessage(id_echo_test, timestamp);
+  console.log(message);
+  let messageToProsa =
+    message.header + message.mti + message.bitmap + message.dataElements;
+  Prosa.getInstance().getSocket().write(messageToProsa, "utf8");
+  Prosa.getInstance().getSocket().write("\n");
+  console.log("Mensaje enviado a Prosa");
 }
 
 export { loopEcho, loopReverses, prosa };

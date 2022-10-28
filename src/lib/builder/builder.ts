@@ -1,3 +1,4 @@
+import { EchoBuilder } from "./echoBuilder";
 import { RequestBuilder } from "./requestBuilder";
 
 /**
@@ -21,6 +22,9 @@ export interface Message {
 export function GetBuilder(builderType: string): IBuilder {
   if (builderType == "0200") {
     return new RequestBuilder();
+  }
+  if (builderType == "0800") {
+    return new EchoBuilder();
   }
   return new RequestBuilder();
 }

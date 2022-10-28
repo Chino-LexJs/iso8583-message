@@ -23,4 +23,14 @@ interface tansaction_keys {
   workkey_key: string;
 }
 
-export { terminal_request, message_execute_Payment, tansaction_keys };
+interface echo_test {
+  timestamp: string;
+  res: boolean;
+}
+
+export {
+  terminal_request,
+  message_execute_Payment,
+  tansaction_keys,
+  echo_test,
+};

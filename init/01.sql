@@ -56,7 +56,6 @@ CREATE TABLE transaction_keys(
 --         "00000101403388200001",
 --         "AEA40693C054BE3A65E14D572C58EAB9"
 --     );
-
 CREATE TABLE terminal_request(
     id INT AUTO_INCREMENT,
     terminal_id VARCHAR(255),
@@ -89,5 +88,12 @@ CREATE TABLE message_response(
     timestamp VARCHAR(255) NOT NULL,
     mti ENUM("0200", "0210", "0430", "0800", "0810"),
     content VARCHAR(500) NOT NULL,
+    PRIMARY KEY(id)
+) ENGINE = INNODB;
+
+CREATE TABLE echo_test(
+    id INT AUTO_INCREMENT,
+    timestamp VARCHAR(255) NOT NULL,
+    res BOOLEAN,
     PRIMARY KEY(id)
 ) ENGINE = INNODB;

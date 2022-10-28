@@ -79,8 +79,7 @@ export const requestPayment = async (req: Request, res: Response) => {
       };
       res.send(response_error);
     }
-  } catch (error) {
-    console.log(error);
+  } catch (error: any) {
     let response_error: Request_Payment_Response = {
       id: 0,
       rc: -1,
