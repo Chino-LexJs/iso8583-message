@@ -1,16 +1,5 @@
 import { IBuilder, Message } from "./builder";
-import { array_to_hexa } from "../../util/array_to_hexa";
-import {
-  trasmissionDateAndTime,
-  localTransactionTime,
-  localTransactionDate,
-  captureDate,
-} from "../../util/dateTime_utils";
-import {
-  Execute_Payment,
-  Execute_Payment_Response,
-  Request_Payment,
-} from "../messageTypes";
+import { Execute_Payment, Request_Payment } from "../messageTypes";
 import {
   Token_EX,
   Token_ES,
@@ -20,6 +9,11 @@ import {
   Token_C4,
   Token_EZ,
 } from "../tokensTypes";
+import crypto from "crypto";
+var CRC32 = require("crc-32"); // uncomment this line if in node
+var path = require("path");
+var fs = require("fs");
+var CRC32 = require("crc-32"); // uncomment this line if in node
 
 export class Director {
   protected builder: IBuilder;
@@ -136,7 +130,6 @@ export class Director {
     request_payment: Request_Payment,
     id_request: number
   ): string {
-    let amount = "".padStart(12, "0");
     let dataElements = new Map();
     dataElements
       .set(1, "000000001000018C")
@@ -256,11 +249,13 @@ export class Director {
       bines_version: "00",
       llave: "1",
     };
+    let keyA: any = this.getKeyA();
+    let rsa: string = this.getRSA(keyA);
+    let check_value = this.getCheckValue(rsa, keyA);
     let tokenEw: Token_EW = {
-      check_value: message.key.check_value,
-      crc32: message.key.crc32,
-      rsa: message.key.rsa,
-      rsa_name: message.key.name,
+      check_value: check_value,
+      crc32: this.getCRC32(rsa),
+      rsa: rsa,
     };
     let tokenQ1: Token_Q1 = {
       id_authMode: "0",
@@ -302,178 +297,76 @@ export class Director {
     return p63;
   }
 
+  private getKeyA(): any {
+    // Se genera llave aleatoria llave A
+    function getRandomInt(min: number, max: number) {
+      min = Math.ceil(min);
+      max = Math.floor(max);
+      return Math.floor(Math.random() * (max - min) + min); // The maximum is exclusive and the minimum is inclusive
+    }
+    function toHex(number: number) {
+      switch (number) {
+        case 10:
+          return "A";
+        case 11:
+          return "B";
+        case 12:
+          return "C";
+        case 13:
+          return "D";
+        case 14:
+          return "E";
+        case 15:
+          return "F";
+        default:
+          return number.toString();
+      }
+    }
+    // Generar 128 bits random
+    let keyA: any = "";
+    for (let i = 0; i < 32; i++) {
+      keyA += toHex(getRandomInt(1, 16));
+    }
+    keyA = Buffer.from(keyA, "hex");
+    return keyA;
+  }
+
+  private getRSA(keyA: any): string {
+    // Se encripta llave A con llave publica
+    var encryptStringWithRsaPublicKey = function (
+      toEncrypt: any,
+      relativeOrAbsolutePathToPublicKey: string
+    ) {
+      var absolutePath = path.resolve(relativeOrAbsolutePathToPublicKey);
+      var publicKey = fs.readFileSync(absolutePath, "utf8");
+      var buffer = Buffer.from(toEncrypt);
+      var encrypted = crypto.publicEncrypt(publicKey, buffer);
+      return encrypted.toString("base64");
+    };
+    let encryptedKey = encryptStringWithRsaPublicKey(keyA, "./publickey.pem");
+    return encryptedKey;
+  }
+
+  private getCheckValue(rsa: string, keyA: any) {
+    function encryptedFunction(zeros: any, keyA: string, outputEncoding: any) {
+      const cipher = crypto.createCipheriv("aes-128-ecb", keyA, null);
+      return Buffer.concat([cipher.update(zeros), cipher.final()]).toString(
+        outputEncoding
+      );
+    }
+    const zeros = Buffer.alloc(8);
+    console.log(zeros);
+    const encrypted = encryptedFunction(zeros, keyA, "base64");
+    return Buffer.from(encrypted).toString("hex");
+  }
+
+  private getCRC32(encryptedKey: any): string {
+    let crc01 = CRC32.str(encryptedKey);
+    let buff = Buffer.from(Math.abs(crc01).toString(), "hex");
+    return buff.toString("hex");
+  }
+
   private token_transaction(
-    request: Request_Payment,
-    message: Execute_Payment
-  ): string {
-    let p63 = "";
-    let tokenEs: Token_ES = {
-      version: request.device.version,
-      n_serie: request.device.serialnr,
-      bines_caja: message.cardInformation.bin,
-      bines_pinpad: "",
-      bines_version: "00", // No hay pinpad cargago -> 00, sino [00, FF]
-      llave: "0", // para transaccion normal no es necesario inicio de llaves
-    };
-    let tokenEz: Token_EZ = {
-      serial_key: message.device.ksn,
-      counter: message.device.realcounter,
-      failed_counter: message.device.failcounter,
-      track2_flag: "1",
-      read_mode: "05",
-      track2_length: message.cardInformation.track2_length,
-      cvv_flag: message.cardInformation.cvv_present ? "1" : "0",
-      cvv_length: message.cardInformation.cvv_length,
-      track_flag: "0",
-      track2: message.cardInformation.track2,
-      last4: message.cardInformation.last4,
-      crc32: request.key.crc32,
-    };
-    let headerToken = "& 02",
-      tokensData = "",
-      ez = this.tokenEZ(tokenEz),
-      es = this.tokenES(tokenEs);
-    tokensData = tokensData.concat(
-      `! ES${es.length.toString().padStart(5, "0")} ${es}`,
-      `! EZ${ez.length.toString().padStart(5, "0")} ${ez}`
-    );
-    p63 = p63.concat(headerToken, tokensData.length.toString(), tokensData);
-    p63 = p63.length.toString().padStart(3, "0") + p63;
-    return p63;
-  }
-
-  /*
-  public getRes0210(): Execute_Payment_Response {
-    let res: Execute_Payment_Response = {
-      id: Number(this.builder.getP37()), // retrieval reference number
-      timestamp: new Date().toDateString(),
-      rc: this.builder.getP39() == "00" ? 0 : 1, // response code
-      rcdatetime: this.builder.getP13(), // local transaction date
-      rcmessage: this.builder.getP39() == "00" ? "APROBADA" : "DESAPROBADA", // cambiar a posibles respestas
-      ticket: Number(this.builder.getP11()), // system trace audit number
-      authorization: this.builder.getP38(), // Authorization ID Response
-      keys_expired: false,
-    };
-    return res;
-  }
-
-  // MANEJADOR PARA PROSA
-
-  public get0200_InitKeys(): string {
-    let dataElements: number[] = [];
-    Object.keys(this.getBuilder()).forEach((de) => {
-      dataElements.push(Number(de.slice(1)));
-    });
-    let message = "";
-    let header = "ISO026000050",
-      messageTypeId = "0200",
-      bitmap = array_to_hexa(dataElements).hexaPB;
-    this.builder.setP1(array_to_hexa(dataElements).hexaSB);
-    message = message.concat(
-      header,
-      messageTypeId,
-      bitmap,
-      this.builder.getP1(),
-      this.builder.getP3(),
-      this.builder.getP4(),
-      this.builder.getP7(),
-      this.builder.getP11(),
-      this.builder.getP12(),
-      this.builder.getP13(),
-      this.builder.getP17(),
-      this.builder.getP18(),
-      this.builder.getP22(),
-      this.builder.getP25(),
-      this.builder.getP32(),
-      this.builder.getP37(),
-      this.builder.getP42(),
-      this.builder.getP43(),
-      this.builder.getP48(),
-      this.builder.getP49(),
-      this.builder.getP60(),
-      this.builder.getP61(),
-      this.builder.getP63(),
-      this.builder.getS100(),
-      this.builder.getS120(),
-      this.builder.getS121(),
-      this.builder.getS125(),
-      this.builder.getS126()
-    );
-    return message;
-  }
-  public set0200_InitKeys(message: any, id_request: number): void {
-    this.builder
-      .setP1("000000001000018C")
-      .setP3("000000")
-      .setP4("0".padStart(12, "0"))
-      .setP7(trasmissionDateAndTime())
-      .setP11(id_request.toString().padStart(6, "0"))
-      .setP12(localTransactionTime())
-      .setP13(localTransactionDate())
-      .setP17(captureDate())
-      .setP18("5399") // @todo Merchart Type otorga PROSA
-      .setP22(this.entryMode(""))
-      .setP25("00")
-      .setP32("1100000000000") // @todo Acquiring Institution ID Code otorga PROSA se recupera de la DB
-      .setP37(id_request.toString().padStart(12, "0")) // id_request 12 digitos
-      .setP42(message.device.serial.padStart(15, "0"))
-      .setP43("0000000000000000000000000000000000000000") // @todo function buscar en DB información de la terminal (direccion) 40 digitos
-      .setP48("027000000000000000000000000000") // @todo function buscarn en DB Retailer ID, Group y Region (aclarar con OSCAR)
-      .setP49("484")
-      .setP60("0160000000000000000") // @todo function procesar en SERVER y buscar en BD Terminal Owner FIID, Logical Network, Time Offset y Pseudo Terminal ID
-      .setP61("0190000000000000000000") // @todo informacion de la tarjeta Category, Save Account Indicator, Interchange Response Code
-      .setP63(this.tokens_initKeys(message)) // @todo function con TOKEN ES, TOKEN EZ
-      .setS100("010") // @todo function recupera de DB codigo fijo otorgado por PROSA
-      .setS120("02900000000000000000000000000000") // @todo function buscar en DB datos de la Terminal: Name and Location, Terminal Brach ID
-      .setS121("02000000000000000000000") // @todo function buscar en DB datos varios de Terminal (CRT)
-      .setS125("012ADINTR000000") // @todo function procesar datos de Tarjteta (Services|Originador|Destination|Draft Capture Flag)
-      .setS126("03800000000000000000000000000000000000000"); // @todo Aclarar con Oscar si todos son ceros
-  }
-  public get0210(): string {
-    let dataElements: number[] = [];
-    Object.keys(this.getBuilder()).forEach((de) => {
-      dataElements.push(Number(de.slice(1)));
-    });
-    let message: string = "";
-    let header = "ISO026000050",
-      messageTypeId = "0210",
-      bitmap = array_to_hexa(dataElements).hexaPB;
-    this.builder.setP1(array_to_hexa(dataElements).hexaSB);
-    message = message.concat(
-      header,
-      messageTypeId,
-      bitmap,
-      this.builder.getP1(),
-      this.builder.getP3(),
-      this.builder.getP4(),
-      this.builder.getP7(),
-      this.builder.getP11(),
-      this.builder.getP12(),
-      this.builder.getP13(),
-      this.builder.getP17(),
-      this.builder.getP18(),
-      this.builder.getP22(),
-      this.builder.getP32(),
-      this.builder.getP35(),
-      this.builder.getP37(),
-      this.builder.getP38(),
-      this.builder.getP39(),
-      this.builder.getP41(),
-      this.builder.getP48(),
-      this.builder.getP49(),
-      this.builder.getP60(),
-      this.builder.getP61(),
-      this.builder.getP63() ? this.builder.getP63() : "",
-      this.builder.getS100(),
-      this.builder.getS120(),
-      this.builder.getS121(),
-      this.builder.getS125()
-    );
-    return message;
-  }
-
-
-  protected token_transaction(
     request: Request_Payment,
     message: Execute_Payment
   ): string {
@@ -598,7 +491,7 @@ export class Director {
   }
   /**
    * Token de requerimiento de Generación de Nueva Llave
-   * 1: Llave aleatoria cifrada (512) viene en el msj de la terminal como "rsa"
+   * 1: Llave aleatoria cifrada (512) lo genera el server
    * 2: Check Value (6) se envia en el msj de la terminal como "check_value"
    * 3: Version llave RSA publica (10) se envia en el msj de la terminal como "rsa_name"
    * 4: Algoritmo de padding (2) metodo de padding, queda "01" como valor fijo
@@ -610,7 +503,7 @@ export class Director {
     let ewData = "",
       campo01 = campos.rsa,
       campo02 = campos.check_value,
-      campo03 = campos.rsa_name,
+      campo03 = "A000BZPY72", // Se hardcodea preguntar a OSCAR
       campo04 = "01", // en un futuro desde terminal se agregara un campo que sea "padding" que hace referencia a este campo
       campo05 = campos.crc32;
     ewData = ewData.concat(campo01, campo02, campo03, campo04, campo05);

@@ -113,5 +113,4 @@ const init_keys = async (
   Prosa.getInstance().getSocket().write(messageToProsa, "utf8");
   Prosa.getInstance().getSocket().write("\n");
   console.log("Mensaje enviado a Prosa");
-  // ver respuesta de prosa en Prosa.onData() de tipo 0210
 };

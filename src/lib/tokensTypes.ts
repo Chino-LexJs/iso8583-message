@@ -33,7 +33,6 @@ interface Token_EX {
 interface Token_EW {
   rsa: string; // terminal
   check_value: string; // terminal
-  rsa_name: string; // terminal
   crc32: string; // terminal
 }
 
