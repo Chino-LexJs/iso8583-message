@@ -9,10 +9,9 @@ import {
   Token_C4,
   Token_EZ,
 } from "../tokensTypes";
-import crypto from "crypto";
-var CRC32 = require("crc-32"); // uncomment this line if in node
-var path = require("path");
-var fs = require("fs");
+import * as crypto from "crypto";
+import { readFileSync } from "fs";
+import { join } from "path";
 var CRC32 = require("crc-32"); // uncomment this line if in node
 
 export class Director {
@@ -177,6 +176,7 @@ export class Director {
       .set(121, "02000000000000000000000")
       .set(125, "012ADINTR000000")
       .set(126, "03800000000000000000000000000000000000000");
+    console.log("DATA ELEMENTS PARA INICIO DE LLAVES:");
     console.log(dataElements);
     let dataElementsTrama = "";
     dataElements.forEach((de) => {
@@ -251,7 +251,7 @@ export class Director {
     };
     let keyA: any = this.getKeyA();
     let rsa: string = this.getRSA(keyA);
-    let check_value = this.getCheckValue(rsa, keyA);
+    let check_value = this.getCheckValue(keyA);
     let tokenEw: Token_EW = {
       check_value: check_value,
       crc32: this.getCRC32(rsa),
@@ -278,6 +278,7 @@ export class Director {
       ind_cap_datos: "5",
       met_ind_tarjet: "2",
     };
+    console.log(tokenEw);
     let headerToken = "& 05",
       tokensData = "",
       q1 = this.tokenQ1(tokenQ1),
@@ -333,31 +334,38 @@ export class Director {
 
   private getRSA(keyA: any): string {
     // Se encripta llave A con llave publica
+
     var encryptStringWithRsaPublicKey = function (
       toEncrypt: any,
-      relativeOrAbsolutePathToPublicKey: string
-    ) {
-      var absolutePath = path.resolve(relativeOrAbsolutePathToPublicKey);
-      var publicKey = fs.readFileSync(absolutePath, "utf8");
-      var buffer = Buffer.from(toEncrypt);
+      relativeOrAbsolutePathToPublicKey: any
+    ): string {
+      // var absolutePath = path.resolve(relativeOrAbsolutePathToPublicKey);
+      // var publicKey: any = fs.readFileSync(absolutePath, "utf8");
+      const publicKey = readFileSync(
+        join(__dirname, relativeOrAbsolutePathToPublicKey),
+        "utf-8"
+      );
+      console.log(publicKey);
+      var buffer: Buffer = Buffer.from(toEncrypt);
       var encrypted = crypto.publicEncrypt(publicKey, buffer);
       return encrypted.toString("base64");
     };
     let encryptedKey = encryptStringWithRsaPublicKey(keyA, "./publickey.pem");
+    console.log(encryptedKey);
     return encryptedKey;
   }
 
-  private getCheckValue(rsa: string, keyA: any) {
-    function encryptedFunction(zeros: any, keyA: string, outputEncoding: any) {
+  private getCheckValue(keyA: any) {
+    function encryptedFunction(zeros: any, keyA: string) {
       const cipher = crypto.createCipheriv("aes-128-ecb", keyA, null);
       return Buffer.concat([cipher.update(zeros), cipher.final()]).toString(
-        outputEncoding
+        "base64"
       );
     }
     const zeros = Buffer.alloc(8);
-    console.log(zeros);
-    const encrypted = encryptedFunction(zeros, keyA, "base64");
-    return Buffer.from(encrypted).toString("hex");
+    const encrypted = encryptedFunction(zeros, keyA);
+    const encryptedHex = Buffer.from(encrypted).toString("hex");
+    return encryptedHex.substring(0, 6);
   }
 
   private getCRC32(encryptedKey: any): string {
@@ -435,14 +443,6 @@ export class Director {
       campo06,
       campo07
     );
-    console.log("Campos de TOKEN Es:");
-    console.log("campo 01: ", campo01);
-    console.log("campo 02: ", campo02);
-    console.log("campo 03: ", campo03);
-    console.log("campo 04: ", campo04);
-    console.log("campo 05: ", campo05);
-    console.log("campo 06: ", campo06);
-    console.log("campo 07: ", campo07);
     return esData;
   }
   private tokenEZ(campos: Token_EZ): string {
@@ -507,6 +507,12 @@ export class Director {
       campo04 = "01", // en un futuro desde terminal se agregara un campo que sea "padding" que hace referencia a este campo
       campo05 = campos.crc32;
     ewData = ewData.concat(campo01, campo02, campo03, campo04, campo05);
+    console.log("Campos de TOKEN EW:");
+    console.log("campo 01: ", campo01);
+    console.log("campo 02: ", campo02);
+    console.log("campo 03: ", campo03);
+    console.log("campo 04: ", campo04);
+    console.log("campo 05: ", campo05);
     return ewData;
   }
   private tokenQ1(campos: Token_Q1): string {
