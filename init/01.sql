@@ -31,6 +31,7 @@ CREATE TABLE transaction_keys(
     rsa VARCHAR(600) NOT NULL,
     ksn VARCHAR(255) NOT NULL,
     workkey_key VARCHAR(255) NOT NULL,
+    real_counter INT NOT NULL,
     PRIMARY KEY(id)
 ) ENGINE = INNODB;
 

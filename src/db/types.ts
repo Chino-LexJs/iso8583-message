@@ -21,6 +21,7 @@ interface tansaction_keys {
   rsa: string;
   ksn: string;
   workkey_key: string;
+  real_counter: number;
 }
 
 interface echo_test {

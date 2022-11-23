@@ -20,7 +20,7 @@ async function getTransaction_keys(terminal_id: string): Promise<any> {
 async function saveTransaction_keys(tk: tansaction_keys): Promise<any> {
   try {
     let res: any = await pool.query(
-      "INSERT INTO transaction_keys (terminal_id, timestamp, check_value, crc32, name, rsa, ksn, workkey_key) VALUES (?,?,?,?,?,?,?,?)",
+      "INSERT INTO transaction_keys (terminal_id, timestamp, check_value, crc32, name, rsa, ksn, workkey_key, real_counter) VALUES (?,?,?,?,?,?,?,?,?)",
       [
         tk.id_terminal,
         tk.timestamp,
@@ -30,6 +30,7 @@ async function saveTransaction_keys(tk: tansaction_keys): Promise<any> {
         tk.rsa,
         tk.ksn,
         tk.workkey_key,
+        tk.real_counter,
       ]
     );
     return res[0][0];
@@ -37,5 +38,18 @@ async function saveTransaction_keys(tk: tansaction_keys): Promise<any> {
     console.log(error);
   }
 }
-
-export { getTransaction_keys, saveTransaction_keys };
+async function plusCounterTransaction_keys(terminal_id: string): Promise<any> {
+  try {
+    let res: any = await pool.query(
+      `UPDATE transaction_keys SET real_counter=real_counter+1 WHERE terminal_id = "${terminal_id}"`
+    );
+    return res[0][0];
+  } catch (error) {
+    console.log(error);
+  }
+}
+export {
+  getTransaction_keys,
+  saveTransaction_keys,
+  plusCounterTransaction_keys,
+};

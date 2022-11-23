@@ -102,7 +102,7 @@ const init_keys = async (
 ) => {
   let initKeys = GetBuilder("0200");
   let director = new Director(initKeys);
-  let message: Message = await director.BuildInitKeyMessage(
+  let message: Message = director.BuildInitKeyMessage(
     request_payment,
     terminal_requestDB_id
   );

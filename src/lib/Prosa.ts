@@ -102,6 +102,7 @@ export class Prosa {
             rsa: terminal_request.request.key.rsa,
             ksn: token_EX.ksn,
             workkey_key: token_EX.key_cifrada,
+            real_counter: 0,
           };
           await saveTransaction_keys(transaction_keys);
           let res: Request_Payment_Response = {

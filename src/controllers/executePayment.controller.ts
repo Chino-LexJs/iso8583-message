@@ -26,7 +26,7 @@ export const executePayment = async (req: Request, res: Response) => {
       let terminal_request: Request_Payment = terminal_request_DB.request;
       let request = GetBuilder("0200");
       let director = new Director(request);
-      let message: Message = director.BuildRequestMessage(
+      let message: Message = await director.BuildRequestMessage(
         request_payment,
         terminal_request
       );

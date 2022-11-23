@@ -12,6 +12,12 @@ import {
 import * as crypto from "crypto";
 import { readFileSync } from "fs";
 import { join } from "path";
+import { tansaction_keys } from "../../db/types";
+import {
+  getTransaction_keys,
+  plusCounterTransaction_keys,
+} from "../../db/transaction_keys.controller";
+const Dukpt = require("dukpt");
 var CRC32 = require("crc-32"); // uncomment this line if in node
 
 export class Director {
@@ -36,26 +42,34 @@ export class Director {
    */
 
   // MANEJADOR PARA TERMINAL
-  public BuildRequestMessage(
+  public async BuildRequestMessage(
     execute_message: Execute_Payment,
     request_message: Request_Payment
-  ): Message {
+  ): Promise<Message> {
     this.builder.setHeader();
     this.builder.setMti();
     this.builder.setBitmap();
     this.builder.setDataElements(
-      this.addDataElements(execute_message.id, request_message, execute_message)
+      await this.addDataElements(
+        execute_message.id,
+        request_message,
+        execute_message
+      )
     );
     return this.builder.getMessage();
   }
 
-  private addDataElements(
+  private async addDataElements(
     id_request: number,
     request_message: Request_Payment,
     execute_message: Execute_Payment
   ) {
-    let amount = request_message.amount.toString().replace(".", "");
+    console.log("request_message");
+    console.log(request_message);
+
+    console.log("Request_message ", request_message);
     console.log("Request_message.amount: ", request_message.amount);
+    let amount = request_message.amount.toString().replace(".", "");
     console.log("Amount: ", amount);
     let dataElements = new Map();
     dataElements
@@ -98,7 +112,7 @@ export class Director {
       .set(49, "484")
       .set(60, "0160000000000000000")
       .set(61, "0190000000000000000000")
-      .set(63, this.token_transaction(request_message, execute_message)) // Tokens ES y E)
+      .set(63, await this.token_transaction(request_message, execute_message)) // Tokens ES y E)
       .set(100, "010")
       .set(120, "02900000000000000000000000000000")
       .set(121, "02000000000000000000000")
@@ -374,10 +388,10 @@ export class Director {
     return buff.toString("hex");
   }
 
-  private token_transaction(
+  private async token_transaction(
     request: Request_Payment,
     message: Execute_Payment
-  ): string {
+  ): Promise<string> {
     let p63 = "";
     let tokenEs: Token_ES = {
       version: request.device.version,
@@ -387,20 +401,10 @@ export class Director {
       bines_version: "00", // No hay pinpad cargago -> 00, sino [00, FF]
       llave: "0", // para transaccion normal no es necesario inicio de llaves
     };
-    let tokenEz: Token_EZ = {
-      serial_key: message.device.ksn,
-      counter: message.device.realcounter,
-      failed_counter: message.device.failcounter,
-      track2_flag: "1",
-      read_mode: "05",
-      track2_length: message.cardInformation.track2_length,
-      cvv_flag: message.cardInformation.cvv_present ? "1" : "0",
-      cvv_length: message.cardInformation.cvv_length,
-      track_flag: "0",
-      track2: message.cardInformation.track2,
-      last4: message.cardInformation.last4,
-      crc32: request.key.crc32,
-    };
+    let tokenEz: Token_EZ = await this.getCamposTokenEZ(
+      request.device.serialnr,
+      message
+    );
     let headerToken = "& 02",
       tokensData = "",
       ez = this.tokenEZ(tokenEz),
@@ -412,6 +416,39 @@ export class Director {
     p63 = p63.concat(headerToken, tokensData.length.toString(), tokensData);
     p63 = p63.length.toString().padStart(3, "0") + p63;
     return p63;
+  }
+
+  private async getCamposTokenEZ(
+    serialnr: string,
+    message: Execute_Payment
+  ): Promise<Token_EZ> {
+    await plusCounterTransaction_keys(serialnr);
+    let transaction_keys: tansaction_keys = await getTransaction_keys(serialnr);
+    let ipek = transaction_keys.workkey_key; // campo 01 token EX
+    let ksn = transaction_keys.ksn;
+    const TRACK2DATA = message.cardInformation.track2;
+    const dukpt = new Dukpt(ipek, ksn);
+    const options = {
+      inputEncoding: "ascii",
+      outputEncoding: "hex",
+      encryptionMode: "3DES",
+    };
+    const encryptedCardData3Des = dukpt.dukptEncrypt(TRACK2DATA, options);
+    let tokenEZ: Token_EZ = {
+      serial_key: encryptedCardData3Des,
+      counter: transaction_keys.real_counter,
+      failed_counter: message.device.failcounter,
+      track2_flag: "1",
+      read_mode: "05",
+      track2_length: message.cardInformation.track2_length,
+      cvv_flag: message.cardInformation.cvv_present ? "1" : "0",
+      cvv_length: message.cardInformation.cvv_length,
+      track_flag: "0",
+      track2: message.cardInformation.track2,
+      last4: message.cardInformation.last4,
+      crc32: transaction_keys.crc32,
+    };
+    return tokenEZ;
   }
 
   /**
