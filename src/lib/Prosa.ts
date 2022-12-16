@@ -3,7 +3,6 @@ import { tansaction_keys } from "../db/types";
 import { MessageProsa } from "./messageProsa";
 import {
   Execute_Payment_Response,
-  InitKeys_Response,
   Request_Payment_Response,
 } from "./messageTypes";
 import { TerminalCollection } from "./TerminalCollection";
@@ -26,7 +25,6 @@ const to_prosa = {
 export class Prosa {
   private connected: boolean;
   private socket: any;
-  private tiempoRespuesta: number = 55;
   private static instance: Prosa;
   /**
    * @constructor The Singleton's constructor should always be private to prevent direct
@@ -161,24 +159,26 @@ export class Prosa {
   }
   /**
    * @function connect
-   * @description Establece conexion socket a Movistar
-   * @desc Se conecta mediante socket a Movistar si la conexion esta cerrada
+   * @description Establece conexion socket a Prosa
+   * @desc Se conecta mediante socket a Prosa si la conexion esta cerrada
    */
   public connect() {
     if (!this.connected) {
       this.socket = new Socket();
-      this.socket.connect(to_prosa);
-      this.setConnected(true);
+      this.socket.connect(to_prosa, () => {
+        this.setConnected(true);
+      });
       this.socket.setEncoding("utf8"); // se configura socket para manejar cadena de caracteres en el buffer[]
       this.socket.on("data", (message: string) => this.onData(message));
       this.socket.on("close", () => {
         this.setConnected(false);
         this.socket.destroy();
-        console.log(`\nComunicacion con MOVISTAR finalizada`);
+        console.log(`\nComunicacion con Prosa finalizada`);
       });
       this.socket.on("error", (err: Error): void => {
         this.setConnected(false);
         this.socket.destroy();
+        console.log(`\nComunicacion con Prosa finalizada`);
       });
     }
   }

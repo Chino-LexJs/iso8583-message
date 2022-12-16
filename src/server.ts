@@ -1,3 +1,4 @@
+// manejador de rutas
 const routerController = require("./routes");
 
 // paquetes para server

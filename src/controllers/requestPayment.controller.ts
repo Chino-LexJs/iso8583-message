@@ -1,17 +1,17 @@
-import { Request_Payment, Request_Payment_Response } from "../lib/messageTypes";
 import { Request, Response } from "express";
-import { getTerminal } from "../db/terminal.controller";
-import { saveTerminal_request } from "../db/terminal_request.controllers";
-import { tansaction_keys, terminal_request } from "../db/types";
-import { getTransaction_keys } from "../db/transaction_keys.controller";
+import { Request_Payment, Request_Payment_Response } from "../lib/messageTypes";
 import { Director } from "../lib/builder/director";
-import { GetBuilder, Message } from "../lib/builder/builder";
 import { Prosa } from "../lib/Prosa";
+import { GetBuilder, Message } from "../lib/builder/builder";
 import { TerminalCollection } from "../lib/TerminalCollection";
+import { getTerminal } from "../db/terminal.controller";
+import { tansaction_keys, terminal_request } from "../db/types";
+import { saveTerminal_request } from "../db/terminal_request.controllers";
+import { getTransaction_keys } from "../db/transaction_keys.controller";
 
 export const requestPayment = async (req: Request, res: Response) => {
   let request_payment: Request_Payment = req.body;
-  console.log("/requestPayment\n");
+  console.log("/requestPayment:\n");
   console.log(req.body);
   try {
     let terminal = await getTerminal(request_payment.device.serialnr);
@@ -24,7 +24,7 @@ export const requestPayment = async (req: Request, res: Response) => {
       let terminal_requestDB_id = await saveTerminal_request(terminal_request);
       if (terminal_requestDB_id != undefined) {
         let transaction_keys: tansaction_keys = await getTransaction_keys(
-          request_payment.device.serialnr
+          request_payment.device.serialnr // terminal ID
         );
         if (transaction_keys != undefined) {
           let response: Request_Payment_Response = {

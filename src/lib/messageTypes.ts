@@ -1,3 +1,5 @@
+////////// Mensajes entrantes al servidor desde la Terminal //////////
+
 interface Execute_Payment {
   id: number;
   type: string;
@@ -24,7 +26,7 @@ interface Request_Payment {
   type: string;
   entry_mode: string;
   device: {
-    serialnr: string;
+    serialnr: string; // Terminal ID
     version: string;
     counter: number;
   };
@@ -38,7 +40,8 @@ interface Request_Payment {
   amount: string;
 }
 
-// NOTA: rc==-1: Continue to EXECUTE  rc>0: Reserve failed
+////////// Mensajes salientes del servidor a la Terminal //////////
+
 interface Request_Payment_Response {
   id: number;
   rc: number;
@@ -63,53 +66,9 @@ interface Execute_Payment_Response {
   keys_expired: boolean; // indica si hay que actualizar llaves
 }
 
-// ejemplo de respuesta a terminal por venta con banda magnetica de StramPay
-interface Execute_Payment_ResponseStramPay {
-  request_id: "5f79a4a6-6a7d-4c0f-bc9f-6af4d752107b";
-  request_date: "2020-12-04 18:26:06";
-  request_status: true;
-  http_code: 0;
-  id: "607127958470";
-  trace_id: "009182";
-  authorization: "001541";
-  renew_key: false;
-  description: "APROBADA";
-  binInformation: {
-    bin: "425982";
-    bank: "IXE";
-    product: "CREDITO VISA CLASICA ";
-    type: "CREDITO";
-    brand: "VISA";
-  };
-}
-
-interface InitKeys_Response {
-  request_id: string;
-  request_date: string;
-  request_status: boolean;
-  http_code: number;
-  trace_id: string;
-  error_code: string;
-  description: string;
-  authorization: string;
-  ksn: string;
-  key: string;
-  key_crc32: string;
-  key_check_value: string;
-}
-
-interface Data_Element {
-  campo: number;
-  long: number;
-  value: string;
-  used: boolean;
-}
-
 export {
   Request_Payment,
   Request_Payment_Response,
   Execute_Payment,
   Execute_Payment_Response,
-  Data_Element,
-  InitKeys_Response,
 };

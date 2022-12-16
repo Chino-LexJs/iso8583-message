@@ -1,6 +1,5 @@
 import {
   Execute_Payment_Response,
-  InitKeys_Response,
   Request_Payment_Response,
 } from "./messageTypes";
 
@@ -43,13 +42,9 @@ class TerminalCollection {
 
   public sendMessageConnection(
     id_request: number,
-    message:
-      | Request_Payment_Response
-      | InitKeys_Response
-      | Execute_Payment_Response
+    message: Request_Payment_Response | Execute_Payment_Response
   ) {
     let client = this.terminalCollections.get(id_request);
-    console.log();
     client.send(message);
     this.terminalCollections.delete(id_request);
   }

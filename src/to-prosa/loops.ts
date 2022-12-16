@@ -2,15 +2,14 @@ import { saveEcho_test } from "../db/echo_test.controller";
 import { GetBuilder, Message } from "../lib/builder/builder";
 import { Director } from "../lib/builder/director";
 import { Prosa } from "../lib/Prosa";
-/**
- * Instance de Prosa (Singleton)
- */
+
+// instancia singleton de Prosa
 const prosa = Prosa.getInstance();
 
 async function loopReverses() {
-  // let reverses = await getReverses(); // mensajes reversos con isomessage430_id IS NULL [{reverse1}, {reverse2}...]
+  // hablar con Oscar para determinar los mensajes recersos
   console.log(
-    `\nBuscando Reverses...\nSe encontraron: {reverses.length} mensajes reversos sin respuesta 0430`
+    `\nBuscando Reverses...\nSe encontraron: 0 mensajes reversos sin respuesta 0430`
   );
   // sendReverseMessages(reverses);
 }

@@ -1,14 +1,6 @@
 import { IBuilder, Message } from "./builder";
 import { Execute_Payment, Request_Payment } from "../messageTypes";
-import {
-  Token_EX,
-  Token_ES,
-  Token_EW,
-  Token_Q1,
-  Token_Q2,
-  Token_C4,
-  Token_EZ,
-} from "../tokensTypes";
+import { Token_ES, Token_EZ } from "../tokensTypes";
 import * as crypto from "crypto";
 import { readFileSync } from "fs";
 import { join } from "path";
@@ -41,7 +33,7 @@ export class Director {
    * building steps.
    */
 
-  // MANEJADOR PARA TERMINAL
+  // CREADOR DE MENSAJE REQUEST NORMAL
   public async BuildRequestMessage(
     execute_message: Execute_Payment,
     request_message: Request_Payment
@@ -58,7 +50,6 @@ export class Director {
     );
     return this.builder.getMessage();
   }
-
   private async addDataElements(
     id_request: number,
     request_message: Request_Payment,
@@ -126,6 +117,7 @@ export class Director {
     return dataElementsTrama;
   }
 
+  // CREADOR DE MENSAJE REQUEST NORMAL
   public BuildInitKeyMessage(
     request_message: Request_Payment,
     id_request: number
@@ -138,7 +130,6 @@ export class Director {
     );
     return this.builder.getMessage();
   }
-
   private addDataElements_initKeys(
     request_payment: Request_Payment,
     id_request: number
@@ -199,6 +190,7 @@ export class Director {
     return dataElementsTrama;
   }
 
+  // CREADOR DE MENSAJE REQUEST NORMAL
   public BuildEchoMessage(id_echo_test: number, timestamp: string): Message {
     this.builder.setHeader();
     this.builder.setMti();
@@ -223,28 +215,7 @@ export class Director {
     return dataElementsTrama;
   }
 
-  // /**
-  //  * Retorna un valor booleano del contenido del campo 07 del token ES
-  //  * Esta funcion esta ajustada a que el token siempre tenga una longitud fija de 00060 como dicta el pdf ESTÁNDAR HOST POS ADQUIRENTE Versión 7.0.8
-  //  * @returns {boolean} Si el campo 07 del token ES es 1 se retorna true, en caso contrario false
-  //  */
-  // public getField07_ES(): number {
-  //   let p63 = this.builder.getP63();
-  //   return Number(p63[p63.indexOf("! ES") + 69]);
-  // }
-  // protected get_tokenEX(): Token_EX {
-  //   let p63 = this.builder.getP63();
-  //   let indexEX = p63.indexOf("! EX") + 2;
-  //   let tokenEX: Token_EX = {
-  //     key_cifrada: p63.substr(indexEX + 8, 32),
-  //     ksn: p63.substr(indexEX + 40, 20),
-  //     check_value: p63.substr(indexEX + 60, 6),
-  //     status: p63.substr(indexEX + 66, 2),
-  //     crc32: p63.substr(indexEX + 68, 8),
-  //   };
-  //   return tokenEX;
-  // }
-
+  // FUNCIONES VARIAS PARA TOKENS
   /**
    * @function tokens_initKeys
    * @funcdesc Tokens usados: Q1, Q2, C4, ES y EW
@@ -255,51 +226,18 @@ export class Director {
    */
   private tokens_initKeys(message: Request_Payment): string {
     let p63 = "";
-    let tokenEs: Token_ES = {
-      version: message.device.version,
-      n_serie: message.device.serialnr,
-      bines_caja: "",
-      bines_pinpad: "",
-      bines_version: "00",
-      llave: "1",
-    };
     let keyA: any = this.getKeyA();
     let rsa: string = this.getRSA(keyA);
     let check_value = this.getCheckValue(keyA);
-    let tokenEw: Token_EW = {
-      check_value: check_value,
-      crc32: this.getCRC32(rsa),
-      rsa: rsa,
-    };
-    let tokenQ1: Token_Q1 = {
-      id_authMode: "0",
-      id_validMode: "2",
-    };
-    let tokenQ2: Token_Q2 = {
-      id_authMode: "03",
-    };
-    let tokenC4: Token_C4 = {
-      ind_terminal: "0",
-      term_oper_ind: "0",
-      loc_terminal: "0",
-      ind_tarjeth: "0",
-      ind_tarjet: "0",
-      ind_cap_tarjet: "0",
-      ind_status: "0",
-      level_security: "0",
-      routing_ind: "0",
-      act_terminal: "0",
-      ind_cap_datos: "5",
-      met_ind_tarjet: "2",
-    };
-    console.log(tokenEw);
+    let crc32: string = this.getCRC32(rsa);
+    let init_keys = "1";
     let headerToken = "& 05",
       tokensData = "",
-      q1 = this.tokenQ1(tokenQ1),
-      q2 = this.tokenQ2(tokenQ2),
-      c4 = this.tokenC4(tokenC4),
-      es = this.tokenES(tokenEs),
-      ew = this.tokenEW(tokenEw);
+      q1 = this.tokenQ1(),
+      q2 = this.tokenQ2(),
+      c4 = this.tokenC4(),
+      es = this.tokenES(message, init_keys),
+      ew = this.tokenEW(check_value, crc32, rsa);
     tokensData = tokensData.concat(
       `! Q1${q1.length.toString().padStart(5, "0")} ${q1}`,
       `! Q2${q2.length.toString().padStart(5, "0")} ${q2}`,
@@ -361,10 +299,14 @@ export class Director {
       );
       console.log(publicKey);
       var buffer: Buffer = Buffer.from(toEncrypt);
-      var encrypted = crypto.publicEncrypt(publicKey, buffer);
-      return encrypted.toString("base64");
+      let key = {
+        key: publicKey,
+        padding: crypto.constants.RSA_PKCS1_OAEP_PADDING,
+      };
+      var encrypted = crypto.publicEncrypt(key, buffer);
+      return encrypted.toString("hex");
     };
-    let encryptedKey = encryptStringWithRsaPublicKey(keyA, "./publickey.pem");
+    let encryptedKey = encryptStringWithRsaPublicKey(keyA, "./keypub.pem");
     console.log(encryptedKey);
     return encryptedKey;
   }
@@ -384,8 +326,8 @@ export class Director {
 
   private getCRC32(encryptedKey: any): string {
     let crc01 = CRC32.str(encryptedKey);
-    let buff = Buffer.from(Math.abs(crc01).toString(), "hex");
-    return buff.toString("hex");
+    // let buff = Buffer.from(Math.abs(crc01).toString(), "hex");
+    return crc01.toString(16);
   }
 
   private async token_transaction(
@@ -408,7 +350,7 @@ export class Director {
     let headerToken = "& 02",
       tokensData = "",
       ez = this.tokenEZ(tokenEz),
-      es = this.tokenES(tokenEs);
+      es = this.tokenES(request);
     tokensData = tokensData.concat(
       `! ES${es.length.toString().padStart(5, "0")} ${es}`,
       `! EZ${ez.length.toString().padStart(5, "0")} ${ez}`
@@ -424,18 +366,20 @@ export class Director {
   ): Promise<Token_EZ> {
     await plusCounterTransaction_keys(serialnr);
     let transaction_keys: tansaction_keys = await getTransaction_keys(serialnr);
+    console.log("Transaction_key:");
+    console.log(transaction_keys);
     let ipek = transaction_keys.workkey_key; // campo 01 token EX
     let ksn = transaction_keys.ksn;
     const TRACK2DATA = message.cardInformation.track2;
     const dukpt = new Dukpt(ipek, ksn);
     const options = {
-      inputEncoding: "ascii",
+      inputEncoding: "hex",
       outputEncoding: "hex",
       encryptionMode: "3DES",
     };
     const encryptedCardData3Des = dukpt.dukptEncrypt(TRACK2DATA, options);
     let tokenEZ: Token_EZ = {
-      serial_key: encryptedCardData3Des,
+      serial_key: transaction_keys.ksn,
       counter: transaction_keys.real_counter,
       failed_counter: message.device.failcounter,
       track2_flag: "1",
@@ -444,13 +388,12 @@ export class Director {
       cvv_flag: message.cardInformation.cvv_present ? "1" : "0",
       cvv_length: message.cardInformation.cvv_length,
       track_flag: "0",
-      track2: message.cardInformation.track2,
+      track2: encryptedCardData3Des,
       last4: message.cardInformation.last4,
       crc32: transaction_keys.crc32,
     };
     return tokenEZ;
   }
-
   /**
    * "1: Version Softare (20) se envia en el msj de la terminal como "version"
    * "2: Serie del PIN PAD (20) se envia en el msj de la terminal como "n_serie"
@@ -462,15 +405,15 @@ export class Director {
    * @param {Token_ES} campos
    * @returns {string} TOKEN ES
    */
-  private tokenES(campos: Token_ES): string {
+  private tokenES(message: Request_Payment, init_keys: string = "0"): string {
     let esData = "",
-      campo01 = campos.version.padStart(20, "0"),
-      campo02 = campos.n_serie.padStart(20, "0"),
+      campo01 = message.device.version.padStart(20, "0"),
+      campo02 = message.device.serialnr.padStart(20, "0"),
       campo03 = "5",
-      campo04 = campos.bines_caja.padStart(8, "0"),
-      campo05 = campos.bines_pinpad.padStart(8, "0"),
-      campo06 = campos.bines_version,
-      campo07 = campos.llave;
+      campo04 = "".padStart(8, "0"),
+      campo05 = "".padStart(8, "0"),
+      campo06 = "00",
+      campo07 = init_keys;
     esData = esData.concat(
       campo01,
       campo02,
@@ -485,15 +428,15 @@ export class Director {
   private tokenEZ(campos: Token_EZ): string {
     let ezData = "",
       campo01 = campos.serial_key,
-      campo02 = campos.counter.toString(),
-      campo03 = campos.failed_counter.toString(),
+      campo02 = campos.counter.toString().padStart(7, "0"),
+      campo03 = campos.failed_counter.toString().padStart(2, "0"),
       campo04 = campos.track2_flag,
       campo05 = campos.read_mode,
       campo06 = campos.track2_length.toString(),
       campo07 = campos.cvv_flag,
-      campo08 = campos.cvv_length.toString(),
+      campo08 = campos.cvv_length.toString().padStart(2, "0"),
       campo09 = campos.track_flag,
-      campo10 = campos.track2,
+      campo10 = campos.track2.padStart(48),
       campo11 = campos.last4,
       campo12 = campos.crc32;
     ezData = ezData.concat(
@@ -512,17 +455,29 @@ export class Director {
     );
     console.log("Campos de TOKEN EZ:");
     console.log("campo 01: ", campo01);
+    console.log(campo01.length);
     console.log("campo 02: ", campo02);
+    console.log(campo02.length);
     console.log("campo 03: ", campo03);
+    console.log(campo03.length);
     console.log("campo 04: ", campo04);
+    console.log(campo04.length);
     console.log("campo 05: ", campo05);
+    console.log(campo05.length);
     console.log("campo 06: ", campo06);
+    console.log(campo06.length);
     console.log("campo 07: ", campo07);
+    console.log(campo07.length);
     console.log("campo 08: ", campo08);
+    console.log(campo03.length);
     console.log("campo 09: ", campo09);
+    console.log(campo09.length);
     console.log("campo 10: ", campo10);
+    console.log(campo10.length);
     console.log("campo 11: ", campo11);
+    console.log(campo11.length);
     console.log("campo 12: ", campo12);
+    console.log(campo12.length);
 
     return ezData;
   }
@@ -536,13 +491,13 @@ export class Director {
    * @param {Token_EW} campos
    * @returns {string} TOKEN EW
    */
-  private tokenEW(campos: Token_EW): string {
+  private tokenEW(check_value: string, crc32: string, rsa: string): string {
     let ewData = "",
-      campo01 = campos.rsa,
-      campo02 = campos.check_value,
+      campo01 = rsa,
+      campo02 = check_value,
       campo03 = "A000BZPY72", // Se hardcodea preguntar a OSCAR
       campo04 = "01", // en un futuro desde terminal se agregara un campo que sea "padding" que hace referencia a este campo
-      campo05 = campos.crc32;
+      campo05 = crc32;
     ewData = ewData.concat(campo01, campo02, campo03, campo04, campo05);
     console.log("Campos de TOKEN EW:");
     console.log("campo 01: ", campo01);
@@ -552,33 +507,33 @@ export class Director {
     console.log("campo 05: ", campo05);
     return ewData;
   }
-  private tokenQ1(campos: Token_Q1): string {
+  private tokenQ1(): string {
     let q1Data = "",
-      campo01 = campos.id_authMode,
-      campo02 = campos.id_validMode;
+      campo01 = "0",
+      campo02 = "2";
     q1Data = q1Data.concat(campo01, campo02);
     return q1Data;
   }
-  private tokenQ2(campos: Token_Q2): string {
+  private tokenQ2(): string {
     let q2Data = "",
-      campo01 = campos.id_authMode;
+      campo01 = "03";
     q2Data = q2Data.concat(campo01);
     return q2Data;
   }
-  private tokenC4(campos: Token_C4): string {
+  private tokenC4(): string {
     let c4Data = "",
-      campo01 = campos.ind_terminal,
-      campo02 = campos.term_oper_ind,
-      campo03 = campos.loc_terminal,
-      campo04 = campos.ind_tarjeth,
-      campo05 = campos.ind_tarjet,
-      campo06 = campos.ind_cap_tarjet,
-      campo07 = campos.ind_status,
-      campo08 = campos.level_security,
-      campo09 = campos.routing_ind,
-      campo10 = campos.act_terminal,
-      campo11 = campos.ind_cap_datos,
-      campo12 = campos.met_ind_tarjet;
+      campo01 = "0",
+      campo02 = "0",
+      campo03 = "0",
+      campo04 = "0",
+      campo05 = "0",
+      campo06 = "0",
+      campo07 = "0",
+      campo08 = "0",
+      campo09 = "0",
+      campo10 = "0",
+      campo11 = "5",
+      campo12 = "2";
     c4Data = c4Data.concat(
       campo01,
       campo02,
